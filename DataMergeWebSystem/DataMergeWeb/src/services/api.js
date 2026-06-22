@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api', // Đã chuyển sang dùng Reverse Proxy (Nginx)
+  baseURL: '/', // Gốc của Nginx (hoặc Vite), trong code đã tự gắn /api/ rồi
   headers: {
     'Content-Type': 'application/json'
   }
