@@ -12,7 +12,8 @@ services:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: DataMergeDb
     ports:
-      - "3306:3306"
+      # Đổi cổng host từ 3306 sang 3307 để tránh trùng với AgroMarketDb
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
 
@@ -48,8 +49,8 @@ services:
     depends_on:
       - backend
     ports:
-      # Expose port 80 ra ngoài máy host thành 8080
-      - "8080:80"
+      # Đổi cổng host ra ngoài thành 8081 để tránh trùng với Jenkins (8080) và Nginx cũ (80)
+      - "8081:80"
 
 volumes:
   mysql_data:

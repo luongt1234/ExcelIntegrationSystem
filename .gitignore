@@ -1,91 +1,92 @@
 # ==================================
 # Node.js & Frontend (Vite/React)
 # ==================================
-node_modules/
-dist/
-dist-ssr/
-*.local
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/*.local
 
 # Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+**/logs/
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.vs/
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln.docstates
+**/.vscode/*
+!**/.vscode/extensions.json
+**/.idea/
+**/.vs/
+**/.DS_Store
+**/*.suo
+**/*.ntvs*
+**/*.njsproj
+**/*.sln.docstates
 
 # ==================================
 # .NET Core & Backend
 # ==================================
-bin/
-obj/
-*.user
-*.userosscache
-*.sln.rsuser
-*.suo
-*.userprefs
+**/bin/
+**/obj/
+**/*.user
+**/*.userosscache
+**/*.sln.rsuser
+**/*.suo
+**/*.userprefs
 
 # NuGet Packages
-*.nupkg
-packages/
-*.nuget.props
-*.nuget.targets
+**/*.nupkg
+**/packages/
+**/*.nuget.props
+**/*.nuget.targets
 
 # Temp files
-*.tmp
-*.bak
-*.swp
+**/*.tmp
+**/*.bak
+**/*.swp
 
 # Application specific
-DataMergeWebSystem/DataMergeServices/TempUploads/
-appsettings.Development.json
-appsettings.Production.json
-appsettings.*.json
+**/DataMergeWebSystem/DataMergeServices/TempUploads/
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.*.json
 
 # Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
-[Ll]ogs/
+**/[Dd]ebug/
+**/[Dd]ebugPublic/
+**/[Rr]elease/
+**/[Rr]eleases/
+**/x64/
+**/x86/
+**/[Aa][Rr][Mm]/
+**/[Aa][Rr][Mm]64/
+**/bld/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Ll]og/
+**/[Ll]ogs/
 
 # ==================================
 # Python
 # ==================================
-__pycache__/
-*.py[cod]
-*$py.class
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
 
 # Virtual environments
-venv/
-env/
-.env/
-.venv/
-env.bak/
-venv.bak/
+**/venv/
+**/env/
+**/.env/
+**/.venv/
+**/env.bak/
+**/venv.bak/
 
 # Environment variables
-.env
+**/.env
 
 # Jupyter Notebook
-.ipynb_checkpoints
+**/.ipynb_checkpoints
