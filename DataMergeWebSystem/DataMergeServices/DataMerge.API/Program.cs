@@ -67,6 +67,20 @@ builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 var app = builder.Build();
 
+// Tự động Apply Migration khi khởi động (Đặc biệt quan trọng khi chạy qua Docker)
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Error applying migration] {ex.Message}");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

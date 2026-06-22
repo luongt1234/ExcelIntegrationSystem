@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Database Service
+  # ==========================================
+  db:
+    image: mysql:8.0
+    container_name: datamerge_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: DataMergeDb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # ==========================================
+  # Backend Service (.NET 8)
+  # ==========================================
+  backend:
+    build:
+      context: ./DataMergeWebSystem/DataMergeServices
+      dockerfile: Dockerfile
+    container_name: datamerge_backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # Ghi đè ConnectionString để trỏ sang service "db" thay vì "localhost"
+      - ConnectionStrings__DefaultConnection=server=db;database=DataMergeDb;user=root;password=rootpassword;
+      # Cấu hình đường dẫn upload tạm thời sử dụng Volume
+      - TempUploadPath=/app/TempUploads
+    volumes:
+      - backend_uploads:/app/TempUploads
+
+  # ==========================================
+  # Frontend Service (React + Nginx)
+  # ==========================================
+  frontend:
+    build:
+      context: ./DataMergeWebSystem/DataMergeWeb
+      dockerfile: Dockerfile
+    container_name: datamerge_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      # Expose port 80 ra ngoài máy host thành 8080
+      - "8080:80"
+
+volumes:
+  mysql_data:
+  backend_uploads:

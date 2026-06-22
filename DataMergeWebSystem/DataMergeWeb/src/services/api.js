@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5055', // Chỉnh sửa lại port theo đúng Kestrel
+  baseURL: '/api', // Đã chuyển sang dùng Reverse Proxy (Nginx)
   headers: {
     'Content-Type': 'application/json'
   }
