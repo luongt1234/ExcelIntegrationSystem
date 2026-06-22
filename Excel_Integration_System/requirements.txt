@@ -1,0 +1,5 @@
+pandas
+PyQt6
+rapidfuzz
+scikit-learn
+openpyxl

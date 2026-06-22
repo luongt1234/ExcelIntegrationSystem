@@ -1,0 +1,151 @@
+using DataMerge.Application.Interfaces;
+using DataMerge.Domain.Models;
+
+namespace DataMerge.Infrastructure.Services
+{
+    /// <summary>
+    /// Hiện thực logic Gộp Hồ Sơ (Dedup + Union) và Bổ sung thông tin (Left Join).
+    /// Port từ Python services/data_processor.py sang C#.
+    /// </summary>
+    public class MergeService : IMergeService
+    {
+        private readonly IExcelService _excelService;
+
+        public MergeService(IExcelService excelService)
+        {
+            _excelService = excelService;
+        }
+
+        /// <summary>
+        /// Gộp nhiều file theo Unified Key Config.
+        /// - Mode 1: Union + Dedup (loại trùng lặp theo key).
+        /// - Mode 3: Chỉ dọn dẹp / chuẩn hóa 1 file (không gộp).
+        /// </summary>
+        public async Task<MergeResultDto> MergeFilesAsync(List<string> filePaths, MergeKeyConfig config)
+        {
+            var allData = new List<Dictionary<string, object?>>();
+            int totalInput = 0;
+
+            // Đọc toàn bộ data từ các files
+            foreach (var fp in filePaths)
+            {
+                var fileData = await _excelService.ReadAllDataAsync(fp);
+                totalInput += fileData.Count;
+                allData.AddRange(fileData);
+            }
+
+            // Thu thập tất cả các key columns duy nhất
+            var keyColumns = config.KeyColumnsByFile
+                .SelectMany(kv => kv.Value)
+                .Distinct()
+                .ToList();
+
+            List<Dictionary<string, object?>> dedupedData;
+            int dupCount = 0;
+
+            if (keyColumns.Any() && config.MergeMode != 3)
+            {
+                // Deduplication: giữ lại dòng đầu tiên của mỗi key
+                var seen = new HashSet<string>();
+                dedupedData = new List<Dictionary<string, object?>>();
+
+                foreach (var row in allData)
+                {
+                    var keyValue = BuildKey(row, keyColumns);
+                    if (seen.Add(keyValue))
+                        dedupedData.Add(row);
+                    else
+                        dupCount++;
+                }
+            }
+            else
+            {
+                dedupedData = allData;
+            }
+
+            // Thu thập toàn bộ headers từ tất cả data rows
+            var allHeaders = allData
+                .SelectMany(r => r.Keys)
+                .Distinct()
+                .ToList();
+
+            return new MergeResultDto
+            {
+                Rows = dedupedData,
+                Headers = allHeaders,
+                TotalInput = totalInput,
+                TotalOutput = dedupedData.Count,
+                TotalDuplicate = dupCount
+            };
+        }
+
+        /// <summary>
+        /// Left Join: gắn cột từ file phụ vào file gốc theo key.
+        /// Port từ logic Python: DragDropMappingScreen → handle_drag_drop_confirmed.
+        /// </summary>
+        public async Task<MergeResultDto> LeftJoinAsync(
+            string masterFilePath,
+            List<string> auxFilePaths,
+            List<ColumnMappingItem> mappings,
+            List<string> keyColumns)
+        {
+            var masterData = await _excelService.ReadAllDataAsync(masterFilePath);
+
+            // Index các file phụ theo key để lookup O(1)
+            var auxIndexes = new Dictionary<string, Dictionary<string, Dictionary<string, object?>>>();
+            foreach (var auxPath in auxFilePaths)
+            {
+                var auxData = await _excelService.ReadAllDataAsync(auxPath);
+                var index = new Dictionary<string, Dictionary<string, object?>>(StringComparer.OrdinalIgnoreCase);
+                foreach (var row in auxData)
+                {
+                    var key = BuildKey(row, keyColumns);
+                    if (!string.IsNullOrEmpty(key) && !index.ContainsKey(key))
+                        index[key] = row;
+                }
+                auxIndexes[auxPath] = index;
+            }
+
+            // Thực hiện join
+            var result = new List<Dictionary<string, object?>>();
+            foreach (var masterRow in masterData)
+            {
+                var outputRow = new Dictionary<string, object?>(masterRow);
+                var masterKey = BuildKey(masterRow, keyColumns);
+
+                foreach (var mapping in mappings)
+                {
+                    if (auxIndexes.TryGetValue(mapping.AuxFile, out var auxIndex) &&
+                        auxIndex.TryGetValue(masterKey, out var auxRow) &&
+                        auxRow.TryGetValue(mapping.AuxColumn, out var auxVal))
+                    {
+                        outputRow[mapping.OutputColumnName] = auxVal;
+                    }
+                    else
+                    {
+                        outputRow[mapping.OutputColumnName] = null;
+                    }
+                }
+
+                result.Add(outputRow);
+            }
+
+            var allHeaders = result.SelectMany(r => r.Keys).Distinct().ToList();
+
+            return new MergeResultDto
+            {
+                Rows = result,
+                Headers = allHeaders,
+                TotalInput = masterData.Count,
+                TotalOutput = result.Count,
+                TotalDuplicate = 0
+            };
+        }
+
+        private static string BuildKey(Dictionary<string, object?> row, List<string> keyColumns)
+        {
+            return string.Join("|||", keyColumns.Select(k =>
+                row.TryGetValue(k, out var v) ? (v?.ToString()?.Trim() ?? "") : ""));
+        }
+    }
+}

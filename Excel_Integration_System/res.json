@@ -1,0 +1,40 @@
+{
+  "file_path": "test_goc.xlsx",
+  "sheet_names": [
+    "Sheet1"
+  ],
+  "selected_sheet": "Sheet1",
+  "suggested_header_row": 0,
+  "confidence_score": 0.0,
+  "header_start_row": 0,
+  "header_end_row": 0,
+  "data_start_row": 1,
+  "preview_rows": [
+    [
+      "Họ và Tên",
+      "SĐT",
+      "Quê Quán"
+    ],
+    [
+      "Nguyễn Văn A",
+      "0901234567",
+      "Hà Nội"
+    ],
+    [
+      "Trần Thị B",
+      "0987654321",
+      "HCM"
+    ]
+  ],
+  "detected_columns": [
+    "Họ và Tên",
+    "SĐT",
+    "Quê Quán"
+  ],
+  "suggested_mapping": {
+    "Họ và Tên": "Họ và Tên",
+    "SĐT": "Số Điện Thoại",
+    "Quê Quán": "Địa Chỉ"
+  },
+  "header_warning": "⚠️ Không tự nhận diện được dòng tiêu đề, vui lòng chọn Header Row thủ công."
+}

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="DataMerge.API/DataMerge.API.csproj" />
+  <Project Path="DataMerge.Application/DataMerge.Application.csproj" />
+  <Project Path="DataMerge.Domain/DataMerge.Domain.csproj" />
+  <Project Path="DataMerge.Infrastructure/DataMerge.Infrastructure.csproj" />
+</Solution>

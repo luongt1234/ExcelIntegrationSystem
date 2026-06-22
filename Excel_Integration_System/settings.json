@@ -1,0 +1,18 @@
+{
+  "theme": "Dark",
+  "shortcuts": {
+    "open": "<Control-o>",
+    "save": "<Control-s>",
+    "load_profile": "<Control-r>",
+    "export": "<Control-e>",
+    "help": "<F1>"
+  },
+  "ui_customization": {
+    "welcome_title": "Chào mừng đến DataMerge Pro",
+    "welcome_subtitle": "Hợp nhất & chuẩn hóa dữ liệu Excel nhanh chóng, chính xác và bảo mật tuyệt đối.",
+    "card_person_title": "Gộp hồ sơ nhân sự",
+    "card_person_subtitle": ".........",
+    "card_goods_title": "Gộp hàng hóa",
+    "card_goods_subtitle": "....."
+  }
+}
