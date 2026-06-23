@@ -5,10 +5,10 @@ namespace DataMerge.Application.Interfaces
     public interface IExcelService
     {
         /// <summary>Đọc header + preview n dòng đầu của file Excel.</summary>
-        Task<ExcelFileStructure> ReadStructureAsync(string filePath);
+        Task<ExcelFileStructure> ReadStructureAsync(string filePath, string? sheetName = null);
 
         /// <summary>Đọc toàn bộ dữ liệu của file Excel thành danh sách dictionary.</summary>
-        Task<List<Dictionary<string, object?>>> ReadAllDataAsync(string filePath);
+        Task<List<Dictionary<string, object?>>> ReadAllDataAsync(string filePath, string? sheetName = null);
 
         /// <summary>Ghi danh sách dictionary ra file Excel, trả về byte[].</summary>
         Task<byte[]> WriteToExcelAsync(List<Dictionary<string, object?>> data, string sheetName = "Sheet1");
@@ -24,7 +24,8 @@ namespace DataMerge.Application.Interfaces
             string masterFilePath,
             List<string> auxFilePaths,
             List<ColumnMappingItem> mappings,
-            List<string> keyColumns);
+            List<string> keyColumns,
+            Dictionary<string, string>? selectedSheetByFile = null);
     }
 
     public interface IGoodsMatcherService

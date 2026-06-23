@@ -36,15 +36,29 @@ namespace DataMerge.API.Controllers
             return Ok(structure);
         }
 
-        /// <summary>Đọc toàn bộ dữ liệu của một file đã upload (dùng để preview).</summary>
-        [HttpGet("{fileId}/data")]
-        public async Task<IActionResult> GetData(string fileId)
+        /// <summary>Lấy cấu trúc của một Sheet cụ thể (không cần upload lại).</summary>
+        [HttpGet("{fileId}/structure")]
+        public async Task<IActionResult> GetStructure(string fileId, [FromQuery] string? sheetName = null)
         {
             var filePath = _uploadService.GetTempFilePath(fileId);
             if (!System.IO.File.Exists(filePath))
                 return NotFound("File không tồn tại hoặc đã hết hạn.");
 
-            var data = await _excelService.ReadAllDataAsync(filePath);
+            var structure = await _excelService.ReadStructureAsync(filePath, sheetName);
+            structure.FilePath = fileId; // Trả fileId thay vì đường dẫn thực
+
+            return Ok(structure);
+        }
+
+        /// <summary>Đọc toàn bộ dữ liệu của một file đã upload (dùng để preview).</summary>
+        [HttpGet("{fileId}/data")]
+        public async Task<IActionResult> GetData(string fileId, [FromQuery] string? sheetName = null)
+        {
+            var filePath = _uploadService.GetTempFilePath(fileId);
+            if (!System.IO.File.Exists(filePath))
+                return NotFound("File không tồn tại hoặc đã hết hạn.");
+
+            var data = await _excelService.ReadAllDataAsync(filePath, sheetName);
             return Ok(data);
         }
     }

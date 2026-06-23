@@ -9,23 +9,34 @@ export const uploadFile = (file) => {
   const formData = new FormData();
   formData.append('file', file);
   return api.post('/api/excel/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: {
+      'Content-Type': undefined
+    }
   });
 };
 
-export const getFileData = (fileId) =>
-  api.get(`/api/excel/${fileId}/data`);
+export const getFileStructure = (fileId, sheetName = null) => {
+  let url = `/api/excel/${fileId}/structure`;
+  if (sheetName) url += `?sheetName=${encodeURIComponent(sheetName)}`;
+  return api.get(url);
+};
+
+export const getFileData = (fileId, sheetName = null) => {
+  let url = `/api/excel/${fileId}/data`;
+  if (sheetName) url += `?sheetName=${encodeURIComponent(sheetName)}`;
+  return api.get(url);
+};
 
 // ── People Merge (Feature 1) ──────────────────────────
-export const mergePeople = (fileIds, keyColumnsByFile, mergeMode = 1) =>
-  api.post('/api/peopleMerge/merge', { fileIds, keyColumnsByFile, mergeMode });
+export const mergePeople = (fileIds, config) =>
+  api.post('/api/peopleMerge/merge', { fileIds, ...config });
 
 export const exportPeopleResult = (rows) =>
   api.post('/api/peopleMerge/export', { rows }, { responseType: 'blob' });
 
 // ── Info Append / Left Join (Feature 2) ──────────────
-export const leftJoin = (masterFileId, auxFileIds, mappings, keyColumns) =>
-  api.post('/api/infoAppend/join', { masterFileId, auxFileIds, mappings, keyColumns });
+export const leftJoin = (masterFileId, auxFileIds, mappings, keyColumns, selectedSheetByFile = null) =>
+  api.post('/api/infoAppend/join', { masterFileId, auxFileIds, mappings, keyColumns, selectedSheetByFile });
 
 export const exportInfoAppendResult = (rows) =>
   api.post('/api/infoAppend/export', { rows }, { responseType: 'blob' });

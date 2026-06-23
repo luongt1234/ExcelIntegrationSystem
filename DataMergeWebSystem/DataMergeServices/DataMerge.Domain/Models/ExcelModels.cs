@@ -8,7 +8,22 @@ namespace DataMerge.Domain.Models
         public string FilePath { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
         public List<string> Headers { get; set; } = new();
+        public List<List<HeaderCellDto>> HeaderGrid { get; set; } = new();
         public int TotalRows { get; set; }
+        public List<string> SheetNames { get; set; } = new();
+        public string SelectedSheet { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Biểu diễn một ô Tiêu đề (có thể bị Merge) trong lưới Header 2D.
+    /// </summary>
+    public class HeaderCellDto
+    {
+        public string Text { get; set; } = string.Empty;
+        public int RowSpan { get; set; } = 1;
+        public int ColSpan { get; set; } = 1;
+        // Danh sách các chỉ số cột (0-based) mà ô này bao trùm
+        public List<int> CoveredColumns { get; set; } = new();
     }
 
     /// <summary>
@@ -19,6 +34,12 @@ namespace DataMerge.Domain.Models
         /// <summary>Key: đường dẫn file, Value: danh sách tên cột được chọn làm khóa</summary>
         public Dictionary<string, List<string>> KeyColumnsByFile { get; set; } = new();
         public int MergeMode { get; set; } // 1: Union/Dedup, 2: LeftJoin, 3: Clean Only
+        
+        /// <summary>Key: fileId (không phải filePath), Value: Dictionary ánh xạ tên cột cũ -> tên cột mới</summary>
+        public Dictionary<string, Dictionary<string, string>>? ColumnMappingsByFile { get; set; }
+        
+        /// <summary>Key: fileId, Value: tên sheet được chọn</summary>
+        public Dictionary<string, string>? SelectedSheetByFile { get; set; }
     }
 
     /// <summary>
@@ -53,6 +74,7 @@ namespace DataMerge.Domain.Models
         public List<string> AuxFileIds { get; set; } = new();
         public List<ColumnMappingItem> Mappings { get; set; } = new();
         public List<string> KeyColumns { get; set; } = new();
+        public Dictionary<string, string>? SelectedSheetByFile { get; set; }
     }
 
     /// <summary>

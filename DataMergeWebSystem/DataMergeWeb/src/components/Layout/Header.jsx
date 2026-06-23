@@ -1,23 +1,31 @@
-import { Bell } from 'lucide-react';
+import { Bell, Users, FileStack, Package, Home } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 const PAGE_TITLES = {
-  '/home': 'Trang chủ',
-  '/people-merge': 'Dọn dẹp & Gộp Hồ Sơ',
-  '/info-append': 'Bổ sung thông tin',
-  '/goods-merge': 'Gộp Hàng Hóa',
+  '/home': { title: 'Trang chủ', icon: Home },
+  '/people-merge': { title: 'Dọn dẹp & Gộp Hồ Sơ', icon: Users },
+  '/info-append': { title: 'Bổ sung thông tin', icon: FileStack },
+  '/goods-merge': { title: 'Gộp Hàng Hóa', icon: Package },
 };
 
 export default function Header() {
   const { pathname } = useLocation();
-  const title = PAGE_TITLES[pathname] || 'DataMerge';
+  const pageInfo = PAGE_TITLES[pathname] || { title: 'DataMerge', icon: null };
+  const IconComponent = pageInfo.icon;
 
   return (
     <header className="h-16 bg-white flex items-center justify-between px-8 flex-shrink-0"
       style={{ borderBottom: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-      <div>
-        <h1 className="text-lg font-semibold text-gray-800 leading-none">{title}</h1>
-        <div className="text-xs text-gray-400 mt-0.5">DataMerge Web System</div>
+      <div className="flex items-center space-x-3">
+        {IconComponent && (
+          <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+            <IconComponent size={18} />
+          </div>
+        )}
+        <div>
+          <h1 className="text-lg font-semibold text-gray-800 leading-none">{pageInfo.title}</h1>
+          <div className="text-xs text-gray-400 mt-0.5">DataMerge Web System</div>
+        </div>
       </div>
 
       <div className="flex items-center space-x-3">

@@ -25,9 +25,28 @@ export default function FileUploader({ onUploadSuccess, label = "Chọn file Exc
       const res = await uploadFile(file);
       const structure = res.data;
       setUploadedFile({ name: file.name, ...structure });
-      onUploadSuccess?.({ fileId: structure.filePath, fileName: file.name, headers: structure.headers, totalRows: structure.totalRows });
+      onUploadSuccess?.({ 
+        ...structure,
+        fileId: structure.filePath, 
+        fileName: file.name 
+      });
     } catch (err) {
-      setError(err.response?.data?.message || 'Upload thất bại. Vui lòng thử lại.');
+      console.error('Upload error:', err);
+      let errorMsg = 'Upload thất bại. Vui lòng thử lại.';
+      if (err.response?.data) {
+        if (typeof err.response.data === 'string') {
+          if (err.response.data.toLowerCase().includes('<html')) {
+            errorMsg = `Lỗi hệ thống (${err.response.status}). Vui lòng kiểm tra file hoặc báo admin.`;
+          } else {
+            errorMsg = err.response.data;
+          }
+        } else if (err.response.data.message) {
+          errorMsg = err.response.data.message;
+        }
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

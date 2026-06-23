@@ -42,12 +42,21 @@ namespace DataMerge.API.Controllers
             if (missing.Any())
                 return NotFound($"Không tìm thấy {missing.Count} file. Vui lòng upload lại.");
 
+            var mappingsByFilePath = request.ColumnMappingsByFile != null
+                ? request.FileIds
+                    .Where(id => request.ColumnMappingsByFile.ContainsKey(id))
+                    .ToDictionary(
+                        id => _uploadService.GetTempFilePath(id),
+                        id => request.ColumnMappingsByFile[id]
+                    )
+                : null;
+
             var config = new MergeKeyConfig
             {
-                KeyColumnsByFile = request.FileIds
-                    .Zip(request.KeyColumnsByFile ?? Enumerable.Repeat(new List<string>(), request.FileIds.Count))
-                    .ToDictionary(z => z.First, z => z.Second),
-                MergeMode = request.MergeMode
+                KeyColumnsByFile = request.KeyColumnsByFile ?? request.FileIds.ToDictionary(id => id, id => new List<string>()),
+                MergeMode = request.MergeMode,
+                ColumnMappingsByFile = mappingsByFilePath,
+                SelectedSheetByFile = request.SelectedSheetByFile
             };
 
             var result = await _mergeService.MergeFilesAsync(filePaths, config);
@@ -67,8 +76,10 @@ namespace DataMerge.API.Controllers
     public class MergeRequest
     {
         public List<string> FileIds { get; set; } = new();
-        public List<List<string>>? KeyColumnsByFile { get; set; }
+        public Dictionary<string, List<string>>? KeyColumnsByFile { get; set; }
         public int MergeMode { get; set; } = 1;
+        public Dictionary<string, Dictionary<string, string>>? ColumnMappingsByFile { get; set; }
+        public Dictionary<string, string>? SelectedSheetByFile { get; set; }
     }
 
     public class ExportRequest
