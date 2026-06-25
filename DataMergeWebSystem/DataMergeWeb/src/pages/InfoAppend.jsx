@@ -3,17 +3,32 @@ import { Layers, ArrowRight, GripVertical, Check } from 'lucide-react';
 import FileUploader from '../components/FileUploader/FileUploader';
 import BaseTable from '../components/BaseTable/BaseTable';
 import { leftJoin, exportInfoAppendResult, downloadBlob } from '../services/excelService';
+import { useAppContext } from '../contexts/AppContext';
 
 export default function InfoAppend() {
-  const [step, setStep] = useState(0);
-  const [masterFile, setMasterFile] = useState(null);
-  const [auxFiles, setAuxFiles] = useState([null, null]);
-  const [keyColumns, setKeyColumns] = useState([]);
-  const [mappings, setMappings] = useState([]);
+  const { infoState, setInfoState, resetInfoState } = useAppContext();
+  const { step, masterFile, auxFiles, keyColumns, mappings, result } = infoState;
+
   const [dragSource, setDragSource] = useState(null);
-  const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const setStep = (v) => setInfoState(p => ({ ...p, step: typeof v === 'function' ? v(p.step) : v }));
+  const setMasterFile = (v) => {
+    setInfoState(p => ({ ...p, masterFile: typeof v === 'function' ? v(p.masterFile) : v }));
+    setKeyColumns([]);
+    setMappings([]);
+    setResult(null);
+  };
+  const setAuxFiles = (v) => {
+    setInfoState(p => ({ ...p, auxFiles: typeof v === 'function' ? v(p.auxFiles) : v }));
+    setKeyColumns([]);
+    setMappings([]);
+    setResult(null);
+  };
+  const setKeyColumns = (v) => setInfoState(p => ({ ...p, keyColumns: typeof v === 'function' ? v(p.keyColumns) : v }));
+  const setMappings = (v) => setInfoState(p => ({ ...p, mappings: typeof v === 'function' ? v(p.mappings) : v }));
+  const setResult = (v) => setInfoState(p => ({ ...p, result: typeof v === 'function' ? v(p.result) : v }));
 
   const handleAuxUpload = (idx, info) => {
     setAuxFiles(prev => { const a = [...prev]; a[idx] = info; return a; });
@@ -74,7 +89,7 @@ export default function InfoAppend() {
   const allHeaders = result?.headers?.map(h => ({ Header: h, accessor: h })) ?? [];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-[1400px] mx-auto space-y-6">
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center space-x-4">
         <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center"><Layers size={24} /></div>
         <div>
@@ -88,10 +103,10 @@ export default function InfoAppend() {
         {step === 0 && (
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-gray-800">Upload Files</h2>
-            <FileUploader label="📌 File Gốc (Master File)" onUploadSuccess={setMasterFile} />
+            <FileUploader label="📌 File Gốc (Master File)" onUploadSuccess={setMasterFile} initialFile={masterFile} onRemove={() => setMasterFile(null)} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileUploader label="File Phụ 1 (Auxiliary)" onUploadSuccess={(info) => handleAuxUpload(0, info)} />
-              <FileUploader label="File Phụ 2 (tuỳ chọn)" onUploadSuccess={(info) => handleAuxUpload(1, info)} />
+              <FileUploader label="File Phụ 1 (Auxiliary)" onUploadSuccess={(info) => handleAuxUpload(0, info)} initialFile={auxFiles[0]} onRemove={() => handleAuxUpload(0, null)} />
+              <FileUploader label="File Phụ 2 (tuỳ chọn)" onUploadSuccess={(info) => handleAuxUpload(1, info)} initialFile={auxFiles[1]} onRemove={() => handleAuxUpload(1, null)} />
             </div>
             <div className="flex justify-end">
               <button onClick={() => setStep(1)} disabled={!masterFile} className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
@@ -210,7 +225,7 @@ export default function InfoAppend() {
             </div>
             <BaseTable columns={allHeaders} data={result.rows ?? []} title="Kết quả Bổ sung Thông tin" enableExport={false} />
             <div className="flex justify-between mt-2">
-              <button onClick={() => { setStep(0); setResult(null); }} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50">🔄 Làm lại</button>
+              <button onClick={() => resetInfoState()} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50">🔄 Làm lại</button>
               <button onClick={handleExport} className="px-6 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700">📥 Xuất Excel</button>
             </div>
           </div>

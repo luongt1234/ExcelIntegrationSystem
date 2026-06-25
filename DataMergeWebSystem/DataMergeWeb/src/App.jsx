@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
+import { AppProvider } from './contexts/AppContext';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import PeopleMerge from './pages/PeopleMerge';
@@ -14,24 +15,26 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/*" element={
-          <ProtectedRoute>
-            <Layout>
-              <Routes>
-                <Route path="/home" element={<Home />} />
-                <Route path="/" element={<Navigate to="/home" replace />} />
-                <Route path="/people-merge" element={<PeopleMerge />} />
-                <Route path="/info-append" element={<InfoAppend />} />
-                <Route path="/goods-merge" element={<GoodsMerge />} />
-              </Routes>
-            </Layout>
-          </ProtectedRoute>
-        } />
-      </Routes>
-    </Router>
+    <AppProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <Layout>
+                <Routes>
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/" element={<Navigate to="/home" replace />} />
+                  <Route path="/people-merge" element={<PeopleMerge />} />
+                  <Route path="/info-append" element={<InfoAppend />} />
+                  <Route path="/goods-merge" element={<GoodsMerge />} />
+                </Routes>
+              </Layout>
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </Router>
+    </AppProvider>
   );
 }
 

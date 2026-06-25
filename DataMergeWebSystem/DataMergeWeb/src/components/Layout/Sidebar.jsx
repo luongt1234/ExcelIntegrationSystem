@@ -11,8 +11,15 @@ const menus = [
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const user = (() => {
+    try {
+      const stored = localStorage.getItem('user');
+      return stored && stored !== 'undefined' ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  })();
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -21,17 +28,12 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className={`flex-shrink-0 flex flex-col h-full transition-all duration-300 ease-in-out relative ${isCollapsed ? 'w-20' : 'w-64'}`}
-      style={{ background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)', borderRight: '1px solid rgba(255,255,255,0.05)' }}>
-
-      {/* Toggle Button */}
-      <button 
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-6 w-6 h-6 bg-slate-800 text-slate-300 rounded-full flex items-center justify-center border border-slate-600 hover:bg-slate-700 hover:text-white transition-colors z-50 cursor-pointer shadow-md"
-        title={isCollapsed ? "Mở rộng" : "Thu gọn"}
-      >
-        <ChevronRight size={14} className={`transition-transform duration-300 ${isCollapsed ? '' : 'rotate-180'}`} />
-      </button>
+    <aside 
+      className={`flex-shrink-0 flex flex-col h-full transition-all duration-300 ease-in-out relative ${isCollapsed ? 'w-20' : 'w-64'}`}
+      style={{ background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)', borderRight: '1px solid rgba(255,255,255,0.05)' }}
+      onMouseEnter={() => setIsCollapsed(false)}
+      onMouseLeave={() => setIsCollapsed(true)}
+    >
 
       {/* Logo */}
       <div className={`flex items-center px-6 py-5 ${isCollapsed ? 'justify-center px-0' : 'space-x-3'}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>

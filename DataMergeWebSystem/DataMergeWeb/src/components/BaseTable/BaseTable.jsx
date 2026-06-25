@@ -247,7 +247,7 @@ export default function BaseTable({
                 <th 
                   key={idx}
                   onClick={() => handleSort(col.accessor)}
-                  className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none whitespace-nowrap border-r border-gray-200 last:border-r-0"
+                  className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none whitespace-normal break-words min-w-[150px] max-w-[500px] border-r border-gray-200 last:border-r-0"
                 >
                   <div className="flex items-center space-x-1">
                     <span>{col.Header}</span>
@@ -262,7 +262,7 @@ export default function BaseTable({
               currentData.map((row, rowIndex) => (
                 <tr key={rowIndex} className={`transition-colors ${row.__isL1Header ? 'bg-orange-100 font-bold text-orange-900 shadow-sm border-y border-orange-300' : row.__isL2Header ? 'bg-amber-50/60 font-semibold text-gray-900 shadow-sm border-y border-amber-200' : 'hover:bg-blue-50/50'}`}>
                   {columns.map((col, colIndex) => (
-                    <td key={colIndex} className="px-6 py-3 text-sm border-r border-gray-100 last:border-r-0 min-w-[120px] max-w-[400px] whitespace-normal break-words align-top">
+                    <td key={colIndex} className="px-6 py-3 text-sm border-r border-gray-100 last:border-r-0 min-w-[150px] max-w-[500px] whitespace-normal break-words align-top">
                       {row[col.accessor] !== null && row[col.accessor] !== undefined ? String(row[col.accessor]) : '-'}
                     </td>
                   ))}

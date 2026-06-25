@@ -1,16 +1,31 @@
-import { useState, useCallback } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle, Loader } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { Upload, FileSpreadsheet, CheckCircle, Loader, X } from 'lucide-react';
 import { uploadFile } from '../../services/excelService';
 
 /**
  * Component Upload file Excel. Hỗ trợ kéo thả (drag & drop) và chọn file thông thường.
  * Sau khi upload thành công, trả về { fileId, fileName, headers, totalRows } qua onUploadSuccess.
  */
-export default function FileUploader({ onUploadSuccess, label = "Chọn file Excel" }) {
+export default function FileUploader({ onUploadSuccess, onRemove, label = "Chọn file Excel", initialFile = null }) {
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState(initialFile);
   const [error, setError] = useState('');
+
+  const handleRemove = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setUploadedFile(null);
+    onRemove?.();
+  };
+
+  useEffect(() => {
+    if (initialFile) {
+      setUploadedFile({ name: initialFile.fileName || initialFile.name, ...initialFile });
+    } else {
+      setUploadedFile(null);
+    }
+  }, [initialFile]);
 
   const handleFile = useCallback(async (file) => {
     if (!file) return;
@@ -77,10 +92,19 @@ export default function FileUploader({ onUploadSuccess, label = "Chọn file Exc
           type="file"
           accept=".xlsx,.xls"
           onChange={handleInputChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           disabled={loading}
         />
-        <div className="flex flex-col items-center space-y-2">
+        {uploadedFile && (
+          <button
+            onClick={handleRemove}
+            className="absolute top-3 right-3 p-1.5 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors z-20 cursor-pointer"
+            title="Xóa file này"
+          >
+            <X size={18} />
+          </button>
+        )}
+        <div className="flex flex-col items-center space-y-2 relative z-0">
           {loading ? (
             <Loader size={40} className="text-blue-500 animate-spin" />
           ) : uploadedFile ? (

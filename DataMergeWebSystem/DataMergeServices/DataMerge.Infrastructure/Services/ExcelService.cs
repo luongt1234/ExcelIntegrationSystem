@@ -350,26 +350,76 @@ namespace DataMerge.Infrastructure.Services
 
                 var headers = data.SelectMany(r => r.Keys).Distinct().ToList();
 
-                // Viết header
+                // Cập nhật Header giống với Web UI (bg-gray-50, text-gray-700)
                 for (int col = 0; col < headers.Count; col++)
                 {
                     ws.Cells[1, col + 1].Value = headers[col];
                     ws.Cells[1, col + 1].Style.Font.Bold = true;
                     ws.Cells[1, col + 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                    ws.Cells[1, col + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(0x1E, 0x3A, 0x5F));
-                    ws.Cells[1, col + 1].Style.Font.Color.SetColor(System.Drawing.Color.White);
+                    ws.Cells[1, col + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(243, 244, 246)); // bg-gray-100
+                    ws.Cells[1, col + 1].Style.Font.Color.SetColor(System.Drawing.Color.FromArgb(55, 65, 81)); // text-gray-700
                 }
+
+                // Tìm cột STT để thực hiện tô màu phân nhóm cấp 1 (A,B,C) và cấp 2 (I,II,III)
+                int sttColIdx = headers.FindIndex(h => 
+                    h.Trim().Equals("STT", StringComparison.OrdinalIgnoreCase) || 
+                    h.Trim().Equals("SỐ THỨ TỰ", StringComparison.OrdinalIgnoreCase));
+                
+                var romanRegex = new System.Text.RegularExpressions.Regex(@"^(I{1,3}|IV|V|VI{1,3}|IX|X{1,3}(I{1,3}|IV|V|VI{1,3}|IX)?)$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                var alphaRegex = new System.Text.RegularExpressions.Regex(@"^[A-Z]$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
                 // Viết data
                 for (int row = 0; row < data.Count; row++)
                 {
+                    bool isL1 = false;
+                    bool isL2 = false;
+
                     for (int col = 0; col < headers.Count; col++)
                     {
-                        ws.Cells[row + 2, col + 1].Value = data[row].GetValueOrDefault(headers[col]);
+                        var val = data[row].GetValueOrDefault(headers[col]);
+                        ws.Cells[row + 2, col + 1].Value = val;
+
+                        if (col == sttColIdx && val != null)
+                        {
+                            string sttVal = val.ToString().Trim();
+                            if (alphaRegex.IsMatch(sttVal)) isL1 = true;
+                            else if (romanRegex.IsMatch(sttVal)) isL2 = true;
+                        }
+                    }
+
+                    // Tô màu dòng nếu là Header Cấp 1 hoặc Cấp 2 giống hệt Web
+                    if (isL1 || isL2)
+                    {
+                        var rowRange = ws.Cells[row + 2, 1, row + 2, headers.Count];
+                        rowRange.Style.Font.Bold = true;
+                        rowRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        if (isL1)
+                            rowRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(255, 237, 213)); // bg-orange-100
+                        else
+                            rowRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(254, 243, 199)); // bg-amber-50
                     }
                 }
 
-                ws.Cells[ws.Dimension.Address].AutoFitColumns();
+                // --- Tùy chỉnh làm đẹp file Excel ---
+                var dataRange = ws.Cells[1, 1, data.Count + 1, headers.Count];
+                
+                // 1. Tự động xuống dòng (Wrap text) và căn lề trên
+                dataRange.Style.WrapText = true;
+                dataRange.Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Top;
+
+                // 2. Kẻ bảng (Border) màu xám nhạt
+                dataRange.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                dataRange.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                dataRange.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                dataRange.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                dataRange.Style.Border.Top.Color.SetColor(System.Drawing.Color.LightGray);
+                dataRange.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.LightGray);
+                dataRange.Style.Border.Left.Color.SetColor(System.Drawing.Color.LightGray);
+                dataRange.Style.Border.Right.Color.SetColor(System.Drawing.Color.LightGray);
+
+                // 3. Tự động chỉnh độ rộng cột nhưng giới hạn Max = 50 để các ô chữ quá dài phải tự động Wrap
+                ws.Cells[ws.Dimension.Address].AutoFitColumns(12, 50);
+
                 return package.GetAsByteArray();
             });
         }

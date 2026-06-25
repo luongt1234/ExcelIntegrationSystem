@@ -3,6 +3,7 @@ import { Package, Check, ArrowRight, CheckCircle, XCircle, Clock } from 'lucide-
 import FileUploader from '../components/FileUploader/FileUploader';
 import BaseTable from '../components/BaseTable/BaseTable';
 import { matchGoods, exportGoodsResult, downloadBlob } from '../services/excelService';
+import { useAppContext } from '../contexts/AppContext';
 
 const TABS = [
   { key: 'Approved', label: 'Đã duyệt', icon: <CheckCircle size={16} />, color: 'text-green-600', bg: 'bg-green-50 border-green-200', activeBtn: 'bg-green-600' },
@@ -11,14 +12,26 @@ const TABS = [
 ];
 
 export default function GoodsMerge() {
-  const [step, setStep] = useState(0);
-  const [inputFile, setInputFile] = useState(null);
-  const [catalogFile, setCatalogFile] = useState(null);
-  const [matchColumn, setMatchColumn] = useState('');
-  const [result, setResult] = useState(null);
-  const [activeTab, setActiveTab] = useState('Pending');
+  const { goodsState, setGoodsState, resetGoodsState } = useAppContext();
+  const { step, inputFile, catalogFile, matchColumn, result, activeTab } = goodsState;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const setStep = (v) => setGoodsState(p => ({ ...p, step: typeof v === 'function' ? v(p.step) : v }));
+  const setInputFile = (v) => {
+    setGoodsState(p => ({ ...p, inputFile: typeof v === 'function' ? v(p.inputFile) : v }));
+    setMatchColumn('');
+    setResult(null);
+  };
+  const setCatalogFile = (v) => {
+    setGoodsState(p => ({ ...p, catalogFile: typeof v === 'function' ? v(p.catalogFile) : v }));
+    setMatchColumn('');
+    setResult(null);
+  };
+  const setMatchColumn = (v) => setGoodsState(p => ({ ...p, matchColumn: typeof v === 'function' ? v(p.matchColumn) : v }));
+  const setResult = (v) => setGoodsState(p => ({ ...p, result: typeof v === 'function' ? v(p.result) : v }));
+  const setActiveTab = (v) => setGoodsState(p => ({ ...p, activeTab: typeof v === 'function' ? v(p.activeTab) : v }));
 
   const handleMatch = async () => {
     if (!inputFile || !catalogFile) { setError('Cần chọn cả 2 file.'); return; }
@@ -82,8 +95,8 @@ export default function GoodsMerge() {
       {step < 2 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FileUploader label="File Input (dữ liệu cần khớp)" onUploadSuccess={setInputFile} />
-            <FileUploader label="File Catalog (danh mục chuẩn)" onUploadSuccess={setCatalogFile} />
+            <FileUploader label="File Input (dữ liệu cần khớp)" onUploadSuccess={setInputFile} initialFile={inputFile} onRemove={() => setInputFile(null)} />
+            <FileUploader label="File Catalog (danh mục chuẩn)" onUploadSuccess={setCatalogFile} initialFile={catalogFile} onRemove={() => setCatalogFile(null)} />
           </div>
 
           {(inputFile?.headers?.length > 0 || catalogFile?.headers?.length > 0) && (
@@ -155,7 +168,7 @@ export default function GoodsMerge() {
           </div>
 
           <div className="flex justify-between">
-            <button onClick={() => { setStep(0); setResult(null); }} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">🔄 Làm lại</button>
+            <button onClick={() => resetGoodsState()} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">🔄 Làm lại</button>
             <button onClick={handleExport} className="px-6 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors">📥 Xuất Excel Đã duyệt</button>
           </div>
         </div>

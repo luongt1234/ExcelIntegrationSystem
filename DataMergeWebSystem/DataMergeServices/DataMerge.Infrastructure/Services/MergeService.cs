@@ -73,10 +73,10 @@ namespace DataMerge.Infrastructure.Services
             List<Dictionary<string, object?>> dedupedData;
             int dupCount = 0;
 
-            if (keyColumns.Any() && config.MergeMode == 1)
+            if (keyColumns.Any())
             {
                 // Deduplication & Merge: giữ lại dòng đầu tiên của mỗi key, đắp thêm dữ liệu từ các dòng trùng lặp
-                var dedupDict = new Dictionary<string, Dictionary<string, object?>>();
+                var dedupDict = new Dictionary<string, Dictionary<string, object?>>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var row in allData)
                 {
