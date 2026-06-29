@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { FileText, Eye, CheckCircle, RefreshCcw, Maximize2, Minimize2 } from 'lucide-react';
+import { FileText, Eye, CheckCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { getFileData } from '../services/excelService';
+import { hrDictionaries, getStandardizedColumnName } from '../utils/hrDictionary';
 
 // Hàm helper để tạo tên cột Excel (A, B, C..., Z, AA, AB...)
 const getColumnLetter = (colIndex) => {
@@ -24,7 +25,6 @@ export default function FileStructurePreview({ file, isVerified, onVerify, onShe
   const [editValue, setEditValue] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const [viewMode, setViewMode] = useState('table');
-  const [headerRowIndex, setHeaderRowIndex] = useState(0);
   const [previewColumn, setPreviewColumn] = useState(null);
   const [previewPosition, setPreviewPosition] = useState(null);
   const pressTimer = useRef(null);
@@ -37,7 +37,8 @@ export default function FileStructurePreview({ file, isVerified, onVerify, onShe
   const buildColumnName = (colIdx, excludedMap = {}) => {
     if (!file.headerGrid || file.headerGrid.length === 0) {
       const orig = headers[colIdx] || '';
-      return suggestedMappings[orig] || orig;
+      const suggested = suggestedMappings[orig] || orig;
+      return getStandardizedColumnName(suggested);
     }
     const parts = [];
     file.headerGrid.forEach((row, rIdx) => {
@@ -55,19 +56,33 @@ export default function FileStructurePreview({ file, isVerified, onVerify, onShe
     });
     if (parts.length === 1) {
       const orig = parts[0];
-      return suggestedMappings[orig] || suggestedMappings[headers[colIdx]] || orig;
+      const suggested = suggestedMappings[orig] || suggestedMappings[headers[colIdx]] || orig;
+      return getStandardizedColumnName(suggested);
     }
-    return parts.length > 0 ? parts.join(' - ') : (headers[colIdx] || '');
+    // Multi-part name (e.g. "Khác - SĐT"): try to auto-map the full combined name first,
+    // then fall back to auto-mapping the last part (usually the most specific)
+    const combined = parts.length > 0 ? parts.join(' - ') : (headers[colIdx] || '');
+    const mappedFull = getStandardizedColumnName(combined);
+    if (mappedFull !== combined) return mappedFull; // found a match for the full string
+    // Try mapping just the last segment
+    const lastPart = parts[parts.length - 1];
+    const mappedLast = getStandardizedColumnName(lastPart);
+    if (mappedLast !== lastPart) return mappedLast; // e.g. "SĐT" → "Số điện thoại"
+    return lastPart; // Mặc định dùng phần lá, không tự gắn prefix header cha
   };
 
   useEffect(() => {
     if (!mappings || !file.headerGrid || file.headerGrid.length === 0) return;
+    // Tính trước bên ngoài setMappings để tránh stale closure
+    const updatedNames = {};
+    headers.forEach((h, idx) => {
+      updatedNames[h] = buildColumnName(idx, excludedGridCells);
+    });
     setMappings(prev => {
       const next = { ...prev };
-      headers.forEach((h, idx) => {
+      headers.forEach(h => {
         if (next[h]) {
-          const autoName = buildColumnName(idx, excludedGridCells);
-          next[h] = { ...next[h], newName: autoName };
+          next[h] = { ...next[h], newName: updatedNames[h] };
         }
       });
       return next;
@@ -152,13 +167,16 @@ export default function FileStructurePreview({ file, isVerified, onVerify, onShe
       isLongPress.current = false;
       return;
     }
-    if (isVerified || !cellDto.coveredColumns) return;
+    if (isVerified) return;
     const isLeaf = (rIdx + (cellDto.rowSpan || 1)) >= (file.headerGrid?.length || 1);
     const cellKey = `${rIdx}_${cIdx}`;
     if (!isLeaf) {
+      // Non-leaf: toggle loại tiêu đề cha khỏi tên cột (không cần coveredColumns)
       setExcludedGridCells(prev => ({ ...prev, [cellKey]: !prev[cellKey] }));
       return;
     }
+    // Leaf: toggle chọn/bỏ chọn cột (cần coveredColumns)
+    if (!cellDto.coveredColumns || cellDto.coveredColumns.length === 0) return;
     const allSelected = isGridHeaderSelected(cellDto, cellKey);
     setMappings(prev => {
       const next = { ...prev };
@@ -296,15 +314,13 @@ export default function FileStructurePreview({ file, isVerified, onVerify, onShe
             {isExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />} 
             <span>{isExpanded ? 'Thu nhỏ' : 'Phóng to'}</span>
           </button>
-          <button className="flex items-center space-x-1 px-2 py-1 text-gray-500 bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors hidden sm:flex">
-            <RefreshCcw size={14} /> <span>Dò lại</span>
-          </button>
+
         </div>
       </div>
 
       {/* Cấu hình sheet & header */}
       <div className="p-3 bg-white border-b border-gray-200 flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-700">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4 flex-1">
           <div className="flex items-center space-x-2">
             <label className="font-medium">Sheet:</label>
             <select 
@@ -320,18 +336,24 @@ export default function FileStructurePreview({ file, isVerified, onVerify, onShe
               )}
             </select>
           </div>
-          <div className="flex items-center space-x-2">
-            <label className="font-medium">Dòng header:</label>
-            <input 
-              type="number" 
-              value={headerRowIndex} 
-              onChange={(e) => setHeaderRowIndex(parseInt(e.target.value) || 0)}
-              className="border border-gray-300 rounded px-2 py-1 w-16 text-center"
-              min={0}
-              max={5}
-              disabled={isVerified}
-            />
-          </div>
+
+          {/* Chọn / bỏ chọn tất cả — chỉ hiện ở view mapping */}
+          {viewMode === 'mapping' && !isVerified && mappings && (
+            <div className="flex items-center gap-2 ml-auto">
+              <button
+                onClick={() => setMappings(prev => Object.fromEntries(Object.entries(prev).map(([k, v]) => [k, { ...v, selected: true }])))}
+                className="px-3 py-1 text-xs font-medium rounded border border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
+              >
+                ✓ Chọn tất cả
+              </button>
+              <button
+                onClick={() => setMappings(prev => Object.fromEntries(Object.entries(prev).map(([k, v]) => [k, { ...v, selected: false }])))}
+                className="px-3 py-1 text-xs font-medium rounded border border-gray-300 text-gray-600 bg-white hover:bg-gray-100 transition-colors"
+              >
+                ✕ Bỏ chọn tất cả
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -350,57 +372,72 @@ export default function FileStructurePreview({ file, isVerified, onVerify, onShe
           <>
             {viewMode === 'mapping' && (
               <div className="absolute inset-0 flex flex-col bg-white">
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50/50">
-              <div className="flex items-center space-x-3 px-2 py-1 text-xs font-bold text-gray-500 uppercase tracking-wider">
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-50/50">
+              {/* Column header */}
+              <div className="flex items-center space-x-3 px-2 py-1 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                 <div className="w-8 text-center">Giữ</div>
                 <div className="w-1/3">Tên cột gốc</div>
                 <div className="w-8"></div>
                 <div className="flex-1">Tên cột sẽ được map sang</div>
               </div>
-              {headers.map((h, idx) => (
-                <div key={idx} className={`flex items-center space-x-3 p-2 rounded-lg border transition-colors ${mappings[h]?.selected ? 'bg-white border-blue-200 shadow-sm' : 'bg-gray-100 border-gray-200 opacity-60 hover:opacity-100'}`}>
-                  <div className="w-8 flex justify-center">
-                    <input 
-                      type="checkbox" 
-                      checked={mappings[h]?.selected || false} 
-                      onChange={() => toggleColumn(h)}
-                      disabled={isVerified}
-                      className="w-4 h-4 accent-blue-600 cursor-pointer"
+              {(() => {
+                const stdKeys = Object.keys(hrDictionaries);
+                const isMapped = (h) => stdKeys.includes(mappings?.[h]?.newName);
+                const mappedCols = [...headers].filter(isMapped);
+                const unmappedCols = [...headers].filter(h => !isMapped(h));
+
+                const renderRow = (h) => (
+                  <div key={h} className={`flex items-center space-x-3 p-2 rounded-lg border transition-colors ${mappings[h]?.selected ? 'bg-white border-blue-200 shadow-sm' : 'bg-gray-100 border-gray-200 opacity-60 hover:opacity-100'}`}>
+                    <div className="w-8 flex justify-center">
+                      <input 
+                        type="checkbox" 
+                        checked={mappings[h]?.selected || false} 
+                        onChange={() => toggleColumn(h)}
+                        disabled={isVerified}
+                        className="w-4 h-4 accent-blue-600 cursor-pointer"
+                      />
+                    </div>
+                    <div 
+                      className="w-1/3 truncate text-sm font-medium text-gray-700 cursor-help select-none" 
+                      title={`Nhấn giữ để xem dữ liệu cột ${h}`}
+                      onMouseDown={(e) => handleMouseDown(e, h)}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseUp}
+                      onTouchStart={(e) => handleTouchStart(e, h)}
+                      onTouchEnd={handleMouseUp}
+                    >
+                      {h}
+                    </div>
+                    <div className="text-gray-400 w-8 text-center">→</div>
+                    <input
+                      type="text"
+                      value={mappings[h]?.newName || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setMappings(prev => ({
+                          ...prev,
+                          [h]: { ...prev[h], newName: val }
+                        }));
+                      }}
+                      disabled={!mappings[h]?.selected || isVerified}
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 transition-colors"
+                      placeholder="Nhập tên mới..."
                     />
                   </div>
-                  <div 
-                    className="w-1/3 truncate text-sm font-medium text-gray-700 cursor-help select-none" 
-                    title={`Nhấn giữ để xem dữ liệu cột ${h}`}
-                    onMouseDown={(e) => handleMouseDown(e, h)}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                    onTouchStart={(e) => handleTouchStart(e, h)}
-                    onTouchEnd={handleMouseUp}
-                  >
-                    {h}
+                );
+
+                return (
+                  <div className="space-y-2">
+                    {mappedCols.map(renderRow)}
+                    {unmappedCols.map(renderRow)}
                   </div>
-                  <div className="text-gray-400 w-8 text-center">→</div>
-                  <input
-                    type="text"
-                    value={mappings[h]?.newName || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setMappings(prev => ({
-                        ...prev,
-                        [h]: { ...prev[h], newName: val }
-                      }));
-                    }}
-                    disabled={!mappings[h]?.selected || isVerified}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500 transition-colors"
-                    placeholder="Nhập tên mới..."
-                  />
-                </div>
-              ))}
+                );
+              })()}
             </div>
           </div>
           )}
           {(viewMode === 'table' || previewColumn) && (
-          <div className={`absolute inset-0 overflow-auto bg-white ${previewColumn && viewMode === 'mapping' ? 'z-50 pointer-events-none' : ''}`}>
+          <div className={`absolute inset-0 overflow-auto bg-white table-scroll ${previewColumn && viewMode === 'mapping' ? 'z-50 pointer-events-none' : ''}`}>
           <table className="min-w-full border-collapse bg-white text-xs whitespace-nowrap">
             <thead className="sticky top-0 z-20 shadow-sm">
               <tr className="bg-[#e6e6e6]">

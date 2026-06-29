@@ -429,7 +429,15 @@ class StructureConfirmScreen(QWidget):
             saved_selected = set(_saved.get("selected_columns", [])) if _saved else None
             saved_map = _saved.get("column_mapping", {}) if _saved else {}
 
-            for col in detected_cols:
+            # Sắp xếp: cột được nhận dạng tự động (khác Bỏ qua) lên trên, cột chưa nhận dạng nằm dưới
+            sorted_cols = sorted(
+                detected_cols,
+                key=lambda c: 0 if (
+                    saved_map.get(c, suggested_mapping.get(c, "Bỏ qua (Ignore)")) if saved_selected is not None else suggested_mapping.get(c, "Bỏ qua (Ignore)")
+                ) not in ("Bỏ qua (Ignore)", "") else 1
+            )
+
+            for col in sorted_cols:
                 row_w = QWidget()
                 row_w.setFixedHeight(34)
                 row_w.setStyleSheet("background: transparent;")
