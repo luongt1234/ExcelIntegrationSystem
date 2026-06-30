@@ -48,6 +48,16 @@ export const matchGoods = (inputFileId, catalogFileId, matchColumn) =>
 export const exportGoodsResult = (result) =>
   api.post('/api/goodsMerge/export', result, { responseType: 'blob' });
 
+// ── Dynamic Pivot (Feature 4) ─────────────────────────
+export const analyzePivot = (request) =>
+  api.post('/api/dynamicPivot/analyze', request);
+
+export const previewPivot = (config) =>
+  api.post('/api/dynamicPivot/preview', config);
+
+export const exportPivotResult = (config) =>
+  api.post('/api/dynamicPivot/export', config, { responseType: 'blob' });
+
 // ── Utility: Trigger download từ blob response ─────────
 export const downloadBlob = (response, fileName) => {
   const url = window.URL.createObjectURL(new Blob([response.data]));

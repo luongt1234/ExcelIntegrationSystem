@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import PeopleMerge from './pages/PeopleMerge';
 import InfoAppend from './pages/InfoAppend';
 import GoodsMerge from './pages/GoodsMerge';
+import DynamicPivot from './pages/DynamicPivot';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -28,6 +29,7 @@ function App() {
                   <Route path="/people-merge" element={<PeopleMerge />} />
                   <Route path="/info-append" element={<InfoAppend />} />
                   <Route path="/goods-merge" element={<GoodsMerge />} />
+                  <Route path="/dynamic-pivot" element={<DynamicPivot />} />
                 </Routes>
               </Layout>
             </ProtectedRoute>

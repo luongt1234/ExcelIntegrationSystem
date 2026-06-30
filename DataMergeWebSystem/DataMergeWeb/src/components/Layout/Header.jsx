@@ -1,4 +1,4 @@
-import { Bell, Users, FileStack, Package, Home } from 'lucide-react';
+import { Bell, Users, FileStack, Package, Home, Split } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAppContext } from '../../contexts/AppContext';
 
@@ -7,6 +7,7 @@ const PAGE_TITLES = {
   '/people-merge': { title: 'Dọn dẹp & Gộp Hồ Sơ', icon: Users },
   '/info-append': { title: 'Bổ sung thông tin', icon: FileStack },
   '/goods-merge': { title: 'Gộp Hàng Hóa', icon: Package },
+  '/dynamic-pivot': { title: 'Chuyển đổi Dọc – Ngang', icon: Split },
 };
 
 export default function Header() {

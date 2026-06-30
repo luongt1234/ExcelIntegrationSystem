@@ -44,6 +44,22 @@ export const AppProvider = ({ children }) => {
   const [goodsState, setGoodsState] = useState(initialGoodsState);
   const resetGoodsState = () => setGoodsState(initialGoodsState);
 
+  // --- Dynamic Pivot State ---
+  const initialPivotState = {
+    step: 0,
+    uploadedFile: null,
+    sourceColumns: [],
+    ignoreCase: true,
+    multiValueSeparator: '',
+    analysisResult: null,
+    columnConfigs: [],
+    markSymbol: 'x',
+    placement: 'Replace',
+    previewResult: null,
+  };
+  const [pivotState, setPivotState] = useState(initialPivotState);
+  const resetPivotState = () => setPivotState(initialPivotState);
+
   const [headerCenterContent, setHeaderCenterContent] = useState(null);
 
   return (
@@ -52,6 +68,7 @@ export const AppProvider = ({ children }) => {
         peopleState, setPeopleState, resetPeopleState,
         infoState, setInfoState, resetInfoState,
         goodsState, setGoodsState, resetGoodsState,
+        pivotState, setPivotState, resetPivotState,
         headerCenterContent, setHeaderCenterContent,
       }}
     >

@@ -68,6 +68,7 @@ builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<IMergeService, MergeService>();
 builder.Services.AddScoped<IGoodsMatcherService, GoodsMatcherService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+builder.Services.AddScoped<IDynamicPivotService, DynamicPivotService>();
 
 var app = builder.Build();
 
