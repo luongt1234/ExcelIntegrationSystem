@@ -79,7 +79,7 @@ function PivotColumnPicker({ uploadedFile, sourceColumns, loading, error, onTogg
                       value={uploadedFile.selectedSheet || ''}
                       onChange={(e) => onSheetChange(e.target.value)}
                       disabled={loading}
-                      className="text-xs font-bold text-blue-700 bg-transparent border-none focus:outline-none cursor-pointer pr-1"
+                      className="text-xs font-bold text-emerald-700 bg-transparent border-none focus:outline-none cursor-pointer pr-1"
                     >
                       {uploadedFile.sheetNames.map((s, idx) => (
                         <option key={idx} value={s}>{s}</option>
@@ -120,7 +120,7 @@ function PivotColumnPicker({ uploadedFile, sourceColumns, loading, error, onTogg
                 <button
                   onClick={onAnalyze}
                   disabled={loading || !uploadedFile || sourceColumns.length === 0}
-                  className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
+                  className="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center gap-2"
                 >
                   {loading ? <><span className="animate-spin">⏳</span><span>Đang xử lý...</span></> : <span>Tiếp theo →</span>}
                 </button>
@@ -287,7 +287,7 @@ export default function DynamicPivot() {
       <div className="flex justify-between items-center relative w-full max-w-[600px] h-8">
         <div className="absolute top-1/2 -translate-y-1/2 left-[12.5%] right-[12.5%] h-[2px] bg-gray-100 z-0" />
         <div
-          className="absolute top-1/2 -translate-y-1/2 left-[12.5%] h-[2px] bg-blue-500 z-0 transition-all duration-500"
+          className="absolute top-1/2 -translate-y-1/2 left-[12.5%] h-[2px] bg-emerald-500 z-0 transition-all duration-500"
           style={{ width: `${step * 25}%` }}
         />
         {STEPS.map((s, i) => (
@@ -295,13 +295,13 @@ export default function DynamicPivot() {
             key={i}
             onClick={() => i < step ? setStep(i) : null}
             className={`flex flex-col items-center justify-center relative flex-1 z-10 transition-all group ${
-              i <= step ? 'text-blue-600' : 'text-gray-400'
+              i <= step ? 'text-emerald-600' : 'text-gray-400'
             } ${i < step ? 'cursor-pointer' : ''}`}
             title={i < step ? 'Click để quay lại bước này' : ''}
           >
             <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] transition-all duration-300 bg-white ${
-              i < step ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-100 group-hover:bg-blue-700' :
-              i === step ? 'bg-white text-blue-600 ring-4 ring-blue-100' :
+              i < step ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-100 group-hover:bg-emerald-700' :
+              i === step ? 'bg-white text-emerald-600 ring-4 ring-emerald-100' :
               'bg-white text-gray-300 ring-2 ring-gray-100'
             }`}>
               {i < step ? '✔' : i + 1}
@@ -489,7 +489,7 @@ export default function DynamicPivot() {
               <div className="flex justify-end pt-2">
                 <button
                   onClick={() => setStep(1)}
-                  className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                  className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                 >
                   <span>Tiếp tục chọn cột →</span>
                 </button>
@@ -539,7 +539,7 @@ export default function DynamicPivot() {
                     onClick={() => updateState({ markSymbol: opt.val })}
                     className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       markSymbol === opt.val
-                        ? 'bg-blue-600 text-white shadow-xs scale-105'
+                        ? 'bg-emerald-600 text-white shadow-xs scale-105'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-white/80'
                     }`}
                   >
@@ -553,7 +553,7 @@ export default function DynamicPivot() {
                 <button
                   onClick={handlePreview}
                   disabled={loading}
-                  className="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {loading ? <><span className="animate-spin">⏳</span><span>Đang xử lý...</span></> : <span>Xem kết quả →</span>}
                 </button>
@@ -589,7 +589,7 @@ export default function DynamicPivot() {
                           {colAna.uniqueValues.length} giá trị · Tổng {analysisResult.totalRows} dòng
                         </span>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => toggleSelectAll(cIdx, true)} className="text-xs text-blue-600 font-semibold hover:underline">Chọn tất cả</button>
+                          <button onClick={() => toggleSelectAll(cIdx, true)} className="text-xs text-emerald-600 font-semibold hover:underline">Chọn tất cả</button>
                           <span className="text-gray-300">|</span>
                           <button onClick={() => toggleSelectAll(cIdx, false)} className="text-xs text-gray-500 font-semibold hover:underline">Bỏ chọn</button>
                         </div>
@@ -623,7 +623,7 @@ export default function DynamicPivot() {
                                 key={mIdx}
                                 className={`transition-colors ${
                                   m.isSelected
-                                    ? isAltRow ? 'hover:bg-blue-50/30' : 'hover:bg-blue-50/20'
+                                    ? isAltRow ? 'hover:bg-emerald-50/30' : 'hover:bg-emerald-50/20'
                                     : isAltRow ? 'opacity-40 bg-gray-100/50' : 'opacity-40 bg-gray-50'
                                 }`}
                               >
@@ -632,7 +632,7 @@ export default function DynamicPivot() {
                                     type="checkbox"
                                     checked={m.isSelected}
                                     onChange={(e) => handleMappingChange(cIdx, mIdx, 'isSelected', e.target.checked)}
-                                    className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
+                                    className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
                                   />
                                 </td>
                                 <td className="py-3 px-4 align-middle font-semibold text-gray-800 text-sm">
@@ -652,7 +652,7 @@ export default function DynamicPivot() {
                                     value={m.targetColumnName}
                                     onChange={(e) => handleMappingChange(cIdx, mIdx, 'targetColumnName', e.target.value)}
                                     placeholder="Nhập tiêu đề cột đích..."
-                                    className={`w-full px-3 py-2 border rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm ${
+                                    className={`w-full px-3 py-2 border rounded-xl text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm ${
                                       isAltRow
                                         ? 'bg-white border-gray-300 disabled:bg-gray-100 disabled:text-gray-400'
                                         : 'bg-white border-gray-200 disabled:bg-gray-100/60 disabled:text-gray-400'
@@ -702,7 +702,7 @@ export default function DynamicPivot() {
               <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-1.5 text-sm">
                   <span className="text-gray-500 font-medium">Tổng dòng:</span>
-                  <span className="font-bold text-blue-600 text-base">{previewResult.totalRows?.toLocaleString()}</span>
+                  <span className="font-bold text-emerald-600 text-base">{previewResult.totalRows?.toLocaleString()}</span>
                 </div>
                 <div className="w-px h-4 bg-gray-300 hidden sm:block" />
                 <div className="flex items-center gap-1.5 text-sm">
@@ -723,7 +723,7 @@ export default function DynamicPivot() {
                   {Object.entries(previewResult.columnStats).map(([colName, count], idx) => (
                     <span key={idx} className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-gray-200/80 text-xs shadow-2xs">
                       <span className="font-medium text-gray-700 max-w-[120px] truncate" title={colName}>{colName}:</span>
-                      <span className="font-bold text-blue-600 bg-blue-50/80 px-1 rounded">{count}</span>
+                      <span className="font-bold text-emerald-600 bg-emerald-50/80 px-1 rounded">{count}</span>
                     </span>
                   ))}
                 </div>
@@ -735,7 +735,7 @@ export default function DynamicPivot() {
               <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex flex-wrap items-center justify-between gap-3">
                 <h3 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
                   Xem trước dữ liệu
-                  <span className="font-normal text-blue-600 text-xs bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">💡 Nhấn vào tiêu đề cột bất kỳ để gom/sắp xếp dữ liệu</span>
+                  <span className="font-normal text-emerald-600 text-xs bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">💡 Nhấn vào tiêu đề cột bất kỳ để gom/sắp xếp dữ liệu</span>
                 </h3>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500 font-medium">Vị trí đặt cột mới:</span>
@@ -743,13 +743,13 @@ export default function DynamicPivot() {
                     value={placement}
                     onChange={(e) => handlePlacementChange(e.target.value)}
                     disabled={loading}
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 bg-white shadow-2xs"
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-emerald-500 bg-white shadow-2xs"
                   >
                     <option value="Replace">Thay thế (xóa cột gốc)</option>
                     <option value="AfterSource">Giữ cột gốc (đặt kề sau)</option>
                     <option value="End">Giữ cột gốc (đặt cuối bảng)</option>
                   </select>
-                  {loading && <RefreshCw size={16} className="animate-spin text-blue-500" />}
+                  {loading && <RefreshCw size={16} className="animate-spin text-emerald-500" />}
                 </div>
               </div>
               <div className="overflow-x-auto max-h-[620px]">
@@ -765,14 +765,14 @@ export default function DynamicPivot() {
                             key={idx}
                             onClick={() => handleSortColumn(h)}
                             title="Nhấn để sắp xếp / đưa dữ liệu cột này lên đầu"
-                            className={`py-2.5 px-4 cursor-pointer select-none transition-colors hover:bg-blue-100/80 group ${
-                              isPivot ? 'bg-blue-50/40 text-blue-900 font-bold border-x border-blue-100' : ''
-                            } ${isSorted ? '!bg-blue-100 text-blue-950 shadow-inner' : ''}`}
+                            className={`py-2.5 px-4 cursor-pointer select-none transition-colors hover:bg-emerald-100/80 group ${
+                              isPivot ? 'bg-emerald-50/40 text-emerald-900 font-bold border-x border-emerald-100' : ''
+                            } ${isSorted ? '!bg-emerald-100 text-emerald-950 shadow-inner' : ''}`}
                           >
                             <div className="flex items-center justify-between gap-1.5">
                               <span>{h}</span>
                               {isSorted ? (
-                                sortDirection === 'desc' ? <ArrowDown size={14} className="text-blue-600 shrink-0" /> : <ArrowUp size={14} className="text-blue-600 shrink-0" />
+                                sortDirection === 'desc' ? <ArrowDown size={14} className="text-emerald-600 shrink-0" /> : <ArrowUp size={14} className="text-emerald-600 shrink-0" />
                               ) : (
                                 <ArrowUpDown size={12} className="text-gray-400 opacity-40 group-hover:opacity-100 shrink-0 transition-opacity" />
                               )}
@@ -791,7 +791,7 @@ export default function DynamicPivot() {
                           const isPivot = Object.prototype.hasOwnProperty.call(previewResult.columnStats, h);
                           const isMarked = val !== null && val !== undefined && val !== '';
                           return (
-                            <td key={cIdx} className={`py-2.5 px-4 ${isPivot ? 'text-center border-x border-blue-100/60 bg-blue-50/10' : 'text-gray-700'}`}>
+                            <td key={cIdx} className={`py-2.5 px-4 ${isPivot ? 'text-center border-x border-emerald-100/60 bg-emerald-50/10' : 'text-gray-700'}`}>
                               {isPivot && isMarked
                                 ? <span className="text-gray-800 text-sm select-all">{val === 'X' ? 'x' : val}</span>
                                 : <span className="text-sm">{val !== null && val !== undefined ? (val === 'X' ? 'x' : String(val)) : ''}</span>

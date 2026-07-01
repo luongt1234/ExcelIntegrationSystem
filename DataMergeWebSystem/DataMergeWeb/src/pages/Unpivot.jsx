@@ -39,7 +39,7 @@ export default function Unpivot() {
       <div className="flex justify-between items-center relative w-full max-w-[450px] h-8">
         <div className="absolute top-1/2 -translate-y-1/2 left-[16.67%] right-[16.67%] h-[2px] bg-gray-100 z-0" />
         <div
-          className="absolute top-1/2 -translate-y-1/2 left-[16.67%] h-[2px] bg-purple-500 z-0 transition-all duration-500"
+          className="absolute top-1/2 -translate-y-1/2 left-[16.67%] h-[2px] bg-amber-500 z-0 transition-all duration-500"
           style={{ width: `${step * 33.33}%` }}
         />
         {STEPS.map((s, i) => (
@@ -47,13 +47,13 @@ export default function Unpivot() {
             key={i}
             onClick={() => i < step ? setStep(i) : null}
             className={`flex flex-col items-center justify-center relative flex-1 z-10 transition-all group ${
-              i <= step ? 'text-purple-600' : 'text-gray-400'
+              i <= step ? 'text-amber-600' : 'text-gray-400'
             } ${i < step ? 'cursor-pointer' : ''}`}
             title={i < step ? 'Click để quay lại bước này' : ''}
           >
             <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] transition-all duration-300 bg-white ${
-              i < step ? 'bg-purple-600 text-white shadow-sm ring-2 ring-purple-100 group-hover:bg-purple-700' :
-              i === step ? 'bg-white text-purple-600 ring-4 ring-purple-100' :
+              i < step ? 'bg-amber-600 text-white shadow-sm ring-2 ring-amber-100 group-hover:bg-amber-700' :
+              i === step ? 'bg-white text-amber-600 ring-4 ring-amber-100' :
               'bg-white text-gray-300 ring-2 ring-gray-100'
             }`}>
               {i < step ? '✔' : i + 1}
@@ -214,7 +214,7 @@ export default function Unpivot() {
             <RotateCcw size={14} /> Bắt đầu lại
           </button>
           {step === 2 && previewResult && (
-            <button onClick={handleExport} disabled={loading} className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2">
+            <button onClick={handleExport} disabled={loading} className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2">
               <Download size={15} />
               <span>Xuất Excel</span>
             </button>
@@ -245,13 +245,13 @@ export default function Unpivot() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Tên cột Danh mục <span className="text-purple-600 font-semibold">*</span> <span className="text-gray-400">(chứa tên cột gốc)</span>
+                  Tên cột Danh mục <span className="text-amber-600 font-semibold">*</span> <span className="text-gray-400">(chứa tên cột gốc)</span>
                 </label>
                 <input
                   type="text"
                   value={attributeColumnName}
                   onChange={e => updateState({ attributeColumnName: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-400 font-medium"
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-400 font-medium"
                   placeholder="Ví dụ: Phân loại, Danh mục..."
                 />
               </div>
@@ -260,12 +260,12 @@ export default function Unpivot() {
                   <label className="text-xs font-medium text-gray-600">
                     Tên cột Giá trị <span className="text-gray-400">(chứa dữ liệu ô)</span>
                   </label>
-                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-xs text-purple-600 font-semibold hover:text-purple-700">
+                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-xs text-amber-600 font-semibold hover:text-amber-700">
                     <input
                       type="checkbox"
                       checked={includeValueColumn}
                       onChange={e => updateState({ includeValueColumn: e.target.checked })}
-                      className="w-3.5 h-3.5 accent-purple-600 rounded"
+                      className="w-3.5 h-3.5 accent-amber-600 rounded"
                     />
                     <span>Kèm cột này</span>
                   </label>
@@ -275,7 +275,7 @@ export default function Unpivot() {
                     type="text"
                     value={valueColumnName}
                     onChange={e => updateState({ valueColumnName: e.target.value })}
-                    className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-400 font-medium"
+                    className="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-400 font-medium"
                     placeholder="Ví dụ: Giá trị..."
                   />
                 ) : (
@@ -290,7 +290,7 @@ export default function Unpivot() {
                     type="checkbox"
                     checked={skipEmptyValues}
                     onChange={e => updateState({ skipEmptyValues: e.target.checked })}
-                    className="w-4 h-4 accent-purple-600 rounded"
+                    className="w-4 h-4 accent-amber-600 rounded"
                   />
                   <span className="text-sm text-gray-700 font-medium">Bỏ qua dòng giá trị rỗng</span>
                 </label>
@@ -308,7 +308,7 @@ export default function Unpivot() {
                     <span className="font-normal text-gray-400 text-xs">({previewData.length || 0} dòng mẫu)</span>
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Nhấn vào tiêu đề cột hoặc ô dữ liệu bên dưới để <span className="font-medium text-purple-600">chọn/bỏ chọn</span> cột cần thu gọn thành dòng.
+                    Nhấn vào tiêu đề cột hoặc ô dữ liệu bên dưới để <span className="font-medium text-amber-600">chọn/bỏ chọn</span> cột cần thu gọn thành dòng.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -319,7 +319,7 @@ export default function Unpivot() {
                         value={uploadedFile.selectedSheet || ''}
                         onChange={(e) => handleSheetChange(e.target.value)}
                         disabled={loading}
-                        className="text-xs font-bold text-purple-700 bg-transparent border-none focus:outline-none cursor-pointer pr-1"
+                        className="text-xs font-bold text-amber-700 bg-transparent border-none focus:outline-none cursor-pointer pr-1"
                       >
                         {uploadedFile.sheetNames.map((s, idx) => (
                           <option key={idx} value={s}>{s}</option>
@@ -328,7 +328,7 @@ export default function Unpivot() {
                     </div>
                   )}
                   <span className="text-xs font-medium text-gray-600">{unpivotColumns.length}/{allHeaders.length} cột</span>
-                  <button onClick={selectAll} className="px-2.5 py-1 text-xs bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors font-medium cursor-pointer">Chọn tất cả</button>
+                  <button onClick={selectAll} className="px-2.5 py-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors font-medium cursor-pointer">Chọn tất cả</button>
                   <button onClick={clearAll} className="px-2.5 py-1 text-xs bg-gray-50 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors font-medium cursor-pointer">Bỏ chọn</button>
                 </div>
               </div>
@@ -341,9 +341,9 @@ export default function Unpivot() {
                         const isSelected = unpivotColumns.includes(h);
                         return (
                           <th key={idx} onClick={() => toggleColumn(h)}
-                            className={`py-2 px-3 cursor-pointer transition-colors ${isSelected ? 'bg-purple-100 text-purple-900 font-bold border-x border-purple-200' : 'hover:bg-purple-50'}`}>
+                            className={`py-2 px-3 cursor-pointer transition-colors ${isSelected ? 'bg-amber-100 text-amber-900 font-bold border-x border-amber-200' : 'hover:bg-amber-50'}`}>
                             <div className="flex items-center gap-1">
-                              {isSelected ? <CheckSquare size={12} className="text-purple-500 shrink-0" /> : <Square size={12} className="text-gray-400 shrink-0" />}
+                              {isSelected ? <CheckSquare size={12} className="text-amber-500 shrink-0" /> : <Square size={12} className="text-gray-400 shrink-0" />}
                               {h}
                             </div>
                           </th>
@@ -360,7 +360,7 @@ export default function Unpivot() {
                           const isSelected = unpivotColumns.includes(h);
                           return (
                             <td key={cIdx} onClick={() => toggleColumn(h)}
-                              className={`py-1.5 px-3 cursor-pointer ${isSelected ? 'bg-purple-50/60 text-purple-900 border-x border-purple-100/60' : 'text-gray-700'}`}>
+                              className={`py-1.5 px-3 cursor-pointer ${isSelected ? 'bg-amber-50/60 text-amber-900 border-x border-amber-100/60' : 'text-gray-700'}`}>
                               {val != null ? String(val) : ''}
                             </td>
                           );
@@ -378,7 +378,7 @@ export default function Unpivot() {
             <button
               onClick={handlePreview}
               disabled={loading || unpivotColumns.length === 0}
-              className="px-6 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+              className="px-6 py-2.5 bg-amber-600 text-white rounded-lg text-sm font-semibold hover:bg-amber-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
             >
               {loading ? <RefreshCw size={15} className="animate-spin" /> : null}
               Xem trước kết quả →
@@ -394,7 +394,7 @@ export default function Unpivot() {
           <div className="bg-gray-50 rounded-xl p-3 border border-gray-200/80 shadow-2xs flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-1.5 text-sm">
               <span className="text-gray-500 font-medium">Tổng dòng kết quả:</span>
-              <span className="font-bold text-purple-600 text-base">{previewResult.totalRows?.toLocaleString()}</span>
+              <span className="font-bold text-amber-600 text-base">{previewResult.totalRows?.toLocaleString()}</span>
             </div>
             <div className="w-px h-4 bg-gray-300 hidden sm:block" />
             <div className="flex items-center gap-1.5 text-sm">
@@ -414,7 +414,7 @@ export default function Unpivot() {
                   {Object.entries(previewResult.columnStats).map(([col, count], i) => (
                     <span key={i} className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded-md border border-gray-200/80 text-xs shadow-2xs">
                       <span className="font-medium text-gray-700 max-w-[100px] truncate" title={col}>{col}:</span>
-                      <span className="font-bold text-purple-600 bg-purple-50/80 px-1 rounded">{count}</span>
+                      <span className="font-bold text-amber-600 bg-amber-50/80 px-1 rounded">{count}</span>
                     </span>
                   ))}
                 </div>
@@ -427,7 +427,7 @@ export default function Unpivot() {
             <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
               <h3 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
                 Xem trước dữ liệu (15 dòng đầu)
-                <span className="font-normal text-purple-600 text-xs bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100">💡 Nhấn tiêu đề cột để sắp xếp</span>
+                <span className="font-normal text-amber-600 text-xs bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">💡 Nhấn tiêu đề cột để sắp xếp</span>
               </h3>
             </div>
             <div className="overflow-x-auto max-h-[560px]">
@@ -440,13 +440,13 @@ export default function Unpivot() {
                       const isSorted = sortColumn === h;
                       return (
                         <th key={idx} onClick={() => handleSortColumn(h)}
-                          className={`py-2.5 px-4 cursor-pointer select-none transition-colors hover:bg-purple-100/80 group ${
-                            isResult ? 'bg-purple-50/40 text-purple-900 font-bold border-x border-purple-100' : ''
-                          } ${isSorted ? '!bg-purple-100 text-purple-950 shadow-inner' : ''}`}>
+                          className={`py-2.5 px-4 cursor-pointer select-none transition-colors hover:bg-amber-100/80 group ${
+                            isResult ? 'bg-amber-50/40 text-amber-900 font-bold border-x border-amber-100' : ''
+                          } ${isSorted ? '!bg-amber-100 text-amber-950 shadow-inner' : ''}`}>
                           <div className="flex items-center justify-between gap-1.5">
                             <span>{h}</span>
                             {isSorted
-                              ? sortDirection === 'desc' ? <ArrowDown size={14} className="text-purple-600 shrink-0" /> : <ArrowUp size={14} className="text-purple-600 shrink-0" />
+                              ? sortDirection === 'desc' ? <ArrowDown size={14} className="text-amber-600 shrink-0" /> : <ArrowUp size={14} className="text-amber-600 shrink-0" />
                               : <ArrowUpDown size={12} className="text-gray-400 opacity-40 group-hover:opacity-100 shrink-0 transition-opacity" />}
                           </div>
                         </th>
@@ -462,7 +462,7 @@ export default function Unpivot() {
                         const val = row[h];
                         const isResult = resultCols.includes(h);
                         return (
-                          <td key={cIdx} className={`py-2.5 px-4 ${isResult ? 'text-center border-x border-purple-100/60 bg-purple-50/10 font-medium text-purple-900' : 'text-gray-700'}`}>
+                          <td key={cIdx} className={`py-2.5 px-4 ${isResult ? 'text-center border-x border-amber-100/60 bg-amber-50/10 font-medium text-amber-900' : 'text-gray-700'}`}>
                             {val != null && val !== undefined ? String(val) : ''}
                           </td>
                         );

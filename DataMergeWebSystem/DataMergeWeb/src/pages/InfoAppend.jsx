@@ -214,8 +214,8 @@ export default function InfoAppend() {
         {step === 3 && result && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
-                <div className="text-3xl font-bold text-blue-600">{result.totalInput?.toLocaleString()}</div>
+              <div className="bg-indigo-50 rounded-xl p-4 text-center border border-indigo-100">
+                <div className="text-3xl font-bold text-indigo-600">{result.totalInput?.toLocaleString()}</div>
                 <div className="text-sm text-gray-500 mt-1">Dòng file Gốc</div>
               </div>
               <div className="bg-green-50 rounded-xl p-4 text-center border border-green-100">
@@ -226,7 +226,7 @@ export default function InfoAppend() {
             <BaseTable columns={allHeaders} data={result.rows ?? []} title="Kết quả Bổ sung Thông tin" enableExport={false} />
             <div className="flex justify-between mt-2">
               <button onClick={() => resetInfoState()} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50">🔄 Làm lại</button>
-              <button onClick={handleExport} className="px-6 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700">📥 Xuất Excel</button>
+              <button onClick={handleExport} className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700">📥 Xuất Excel</button>
             </div>
           </div>
         )}
