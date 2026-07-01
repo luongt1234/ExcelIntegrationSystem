@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Users, Layers, Package, ArrowUpRight, TrendingUp, FileText, CheckCircle, Split } from 'lucide-react';
+import { Users, Layers, Package, ArrowUpRight, TrendingUp, FileText, CheckCircle, Split, Columns } from 'lucide-react';
 
 const features = [
   {
@@ -33,7 +33,7 @@ const features = [
     tag: 'Catalog Matcher',
   },
   {
-    title: 'Chuyển đổi Dọc - Ngang',
+    title: 'Chuyển đổi Dọc → Ngang',
     description: 'Tách cột phân loại thành cột đánh dấu riêng biệt theo chiều ngang một cách tự động.',
     icon: Split,
     path: '/dynamic-pivot',
@@ -42,10 +42,20 @@ const features = [
     border: 'border-emerald-100',
     tag: 'Dynamic Pivot',
   },
+  {
+    title: 'Chuyển đổi Ngang → Dọc',
+    description: 'Chuyển đổi các cột dữ liệu dàn trải theo chiều ngang thành định dạng hàng dọc chuẩn hóa.',
+    icon: Columns,
+    path: '/unpivot',
+    gradient: 'from-amber-500 to-orange-600',
+    bg: 'bg-amber-50',
+    border: 'border-amber-100',
+    tag: 'Unpivot',
+  },
 ];
 
 const stats = [
-  { label: 'Chức năng', value: '4', icon: CheckCircle, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { label: 'Chức năng', value: '5', icon: CheckCircle, color: 'text-blue-600', bg: 'bg-blue-50' },
   { label: 'Định dạng hỗ trợ', value: '.xlsx / .xls', icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50' },
   { label: 'Giới hạn file', value: '100 MB', icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50' },
 ];
@@ -93,7 +103,7 @@ export default function Home() {
       {/* Feature Cards */}
       <div>
         <h2 className="text-lg font-semibold text-gray-700 mb-4">🛠 Công cụ xử lý dữ liệu</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map(({ title, description, icon: Icon, path, gradient, bg, border, tag }) => (
             <Link key={path} to={path}
               className={`group flex flex-col bg-white rounded-2xl shadow-sm border ${border} overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300`}>

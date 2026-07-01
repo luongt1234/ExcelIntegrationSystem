@@ -21,6 +21,8 @@ export default function PeopleMerge() {
   const [mode, setMode] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [resultTab, setResultTab] = useState('kept');
+  const [expandedDups, setExpandedDups] = useState({});
 
   const setStep = React.useCallback((v) => setPeopleState(p => ({ ...p, step: typeof v === 'function' ? v(p.step) : v })), [setPeopleState]);
   const setUploadedFiles = (v) => setPeopleState(p => ({ ...p, uploadedFiles: typeof v === 'function' ? v(p.uploadedFiles) : v }));
@@ -104,18 +106,23 @@ export default function PeopleMerge() {
     try {
       const keyColumnsByFile = {};
       const selectedSheetByFile = {};
+      const fileNamesById = {};
       validFiles.forEach(f => {
         keyColumnsByFile[f.fileId] = keyColumns;
         selectedSheetByFile[f.fileId] = f.selectedSheet;
+        fileNamesById[f.fileId] = f.fileName;
       });
       const config = {
         mergeMode: mode,
         keyColumnsByFile,
         columnMappingsByFile: fileMappings,
-        selectedSheetByFile
+        selectedSheetByFile,
+        fileNamesById
       };
       const res = await mergePeople(validFiles.map(f => f.fileId), config);
       setResult(res.data);
+      setResultTab('kept');
+      setExpandedDups({});
       setStep(4);
     } catch (err) {
       setError(err.response?.data?.message || 'Xử lý thất bại.');
@@ -365,41 +372,268 @@ export default function PeopleMerge() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-base font-semibold text-gray-800">Kết quả Gộp Hồ Sơ</h2>
               <div className="flex items-center gap-2">
-                <button onClick={() => setStep(3)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">← Quay lại</button>
-                <button onClick={() => { resetPeopleState(); setMode(1); }} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">🔄 Bắt đầu lại</button>
-                <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors shadow-sm">📥 Xuất Excel</button>
+                <button onClick={() => setStep(3)} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer">Quay lại</button>
+                <button onClick={() => { resetPeopleState(); setMode(1); }} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer">Bắt đầu lại</button>
+                <button onClick={handleExport} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors shadow-sm cursor-pointer flex items-center gap-1.5">
+                  <span>Xuất Excel Kết Quả ({result.rows?.length || 0})</span>
+                </button>
               </div>
             </div>
+
+            {/* Thẻ thống kê tương tác */}
             <div className="grid grid-cols-3 gap-4 mb-4">
               {[
-                { label: 'Tổng dòng đầu vào', value: result.totalInput, color: 'text-blue-600' },
-                { label: 'Dòng trùng đã loại', value: result.totalDuplicate, color: 'text-orange-500' },
-                { label: 'Kết quả cuối cùng', value: result.totalOutput, color: 'text-green-600' },
+                { label: 'Tổng dòng đầu vào', value: result.totalInput, color: 'text-blue-600', isClickable: false },
+                { 
+                  label: 'Dòng trùng đã loại', 
+                  value: result.totalDuplicate, 
+                  color: 'text-orange-500', 
+                  isClickable: (result.removedDuplicates?.length > 0 || result.totalDuplicate > 0), 
+                  tabTarget: 'removed' 
+                },
+                { label: 'Kết quả cuối cùng', value: result.totalOutput, color: 'text-green-600', isClickable: true, tabTarget: 'kept' },
               ].map((stat, i) => (
-                <div key={i} className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
+                <div 
+                  key={i} 
+                  onClick={() => stat.isClickable && setResultTab(stat.tabTarget)}
+                  className={`bg-gray-50 rounded-xl p-4 text-center border transition-all ${
+                    stat.isClickable ? 'cursor-pointer hover:shadow-md hover:bg-orange-50/30' : ''
+                  } ${
+                    resultTab === stat.tabTarget ? 'border-orange-400 bg-orange-50/60 ring-2 ring-orange-200 shadow-sm' : 'border-gray-100'
+                  }`}
+                >
                   <div className={`text-3xl font-bold ${stat.color}`}>{stat.value?.toLocaleString()}</div>
-                  <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
+                  <div className="text-sm text-gray-600 mt-1 flex items-center justify-center gap-1.5 font-medium">
+                    <span>{stat.label}</span>
+                  </div>
                 </div>
               ))}
             </div>
-            <BaseTable 
-              columns={(() => {
-                const apiHeaders = result.headers || [];
-                const allRowKeys = new Set();
-                if (result.rows) {
-                  result.rows.forEach(r => Object.keys(r).forEach(k => allRowKeys.add(k)));
-                }
-                const rowKeys = Array.from(allRowKeys);
-                
-                return apiHeaders.map(h => {
-                  const matchingKey = rowKeys.find(k => k.toLowerCase() === h.toLowerCase()) || h;
-                  return { Header: h, accessor: matchingKey };
-                });
-              })()} 
-              data={result.rows ?? []} 
-              title="Kết quả Gộp Hồ Sơ" 
-              enableExport={false} 
-            />
+
+            {/* Khu vực bảng dữ liệu & Tabs */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mt-6">
+              {/* Header cho tab dòng loại trùng (nút tải excel) */}
+              {resultTab === 'removed' && (result.removedDuplicates?.length > 0) && (
+                <div className="flex flex-wrap items-center justify-between border-b border-amber-200 bg-amber-50/60 px-4 py-3 gap-3">
+                  <div className="font-bold text-amber-900 text-sm">
+                    Danh sách {result.removedDuplicates.length} dòng trùng lặp đã bị loại bỏ
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const dupRows = result.removedDuplicates.map(d => ({
+                        'Nguồn file': d.sourceFile,
+                        'Dòng Excel số': d.sourceRowIndex,
+                        'Trùng với dòng giữ lại': `Dòng #${d.keptRowIndex}`,
+                        'Khóa trùng lặp': d.matchedKey,
+                        ...d.removedRow
+                      }));
+                      const res = await exportPeopleResult(dupRows);
+                      downloadBlob(res, 'DanhSach_DongTrungBiLoai.xlsx');
+                    }}
+                    className="px-3.5 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-semibold hover:bg-amber-700 transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>Tải Excel danh sách loại</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Nội dung Tab Kết Quả Gộp Chính */}
+              {resultTab === 'kept' && (
+                <div className="p-1">
+                  <BaseTable 
+                    columns={(() => {
+                      const apiHeaders = result.headers || [];
+                      const allRowKeys = new Set();
+                      if (result.rows) {
+                        result.rows.forEach(r => Object.keys(r).forEach(k => allRowKeys.add(k)));
+                      }
+                      const rowKeys = Array.from(allRowKeys);
+                      
+                      return apiHeaders.map(h => {
+                        const matchingKey = rowKeys.find(k => k.toLowerCase() === h.toLowerCase()) || h;
+                        return { Header: h, accessor: matchingKey };
+                      });
+                    })()} 
+                    data={result.rows ?? []} 
+                    title="Bảng dữ liệu kết quả gộp" 
+                    enableExport={false} 
+                  />
+                </div>
+              )}
+
+              {/* Nội dung Tab Dòng Trùng Đã Loại */}
+              {resultTab === 'removed' && (
+                <div>
+                  {(!result.removedDuplicates || result.removedDuplicates.length === 0) ? (
+                    <div className="p-12 text-center text-gray-500">
+                      <p className="text-base font-semibold text-gray-700">Không phát hiện dòng dữ liệu trùng lặp nào bị loại bỏ.</p>
+                      <p className="text-xs text-gray-400 mt-1">Toàn bộ hồ sơ đầu vào của bạn đều là bản ghi duy nhất.</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto table-scroll max-h-[550px]">
+                      <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
+                        <thead>
+                          <tr className={`bg-gray-100 text-gray-700 font-semibold uppercase border-b border-gray-200 sticky top-0 z-10 transition-all duration-300 ${Object.values(expandedDups).some(Boolean) ? 'opacity-35 blur-[0.5px]' : ''}`}>
+                            <th className="py-3 px-3 w-12 text-center bg-gray-200/90 border-r border-gray-300">STT</th>
+                            <th className="py-3 px-3 bg-amber-100/80 text-amber-900 border-r border-amber-200">Nguồn dữ liệu</th>
+                            {result.headers?.slice(0, 6).map((h, i) => (
+                              <th key={i} className="py-3 px-3 border-r border-gray-200">{h}</th>
+                            ))}
+                            <th className="py-3 px-3 text-center sticky right-0 bg-gray-100 z-10 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">Thao tác</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
+                          {result.removedDuplicates.map((dup, idx) => {
+                            const isExpanded = !!expandedDups[idx];
+                            const hasAnyExpanded = Object.values(expandedDups).some(Boolean);
+                            const displayCols = result.headers?.slice(0, 6) || [];
+                            const cellBlurClass = isExpanded ? 'opacity-25 blur-[1px] pointer-events-none select-none transition-all duration-300' : '';
+                            return (
+                              <React.Fragment key={idx}>
+                                <tr className={`transition-all duration-300 ${!isExpanded && hasAnyExpanded ? 'opacity-25 blur-[1px] pointer-events-none select-none' : 'hover:bg-amber-50/50'}`}>
+                                  <td className={`py-2.5 px-3 text-center text-gray-500 border-r border-gray-200 ${cellBlurClass}`}>{idx + 1}</td>
+                                  <td className={`py-2.5 px-3 border-r border-gray-200 font-medium text-gray-800 ${cellBlurClass}`}>
+                                    <span className="inline-block bg-white px-2 py-0.5 rounded border border-gray-300 text-xs shadow-2xs">
+                                      {dup.sourceFile || 'Excel'} <span className="text-gray-400 font-normal">(Dòng {dup.sourceRowIndex})</span>
+                                    </span>
+                                  </td>
+                                  {displayCols.map((col, cIdx) => {
+                                    const val = dup.removedRow?.[col];
+                                    return (
+                                      <td key={cIdx} className={`py-2.5 px-3 border-r border-gray-200 max-w-[180px] truncate ${cellBlurClass}`} title={val}>
+                                        {val ?? <span className="text-gray-300 italic">-</span>}
+                                      </td>
+                                    );
+                                  })}
+                                  <td className="py-2 px-3 text-center sticky right-0 bg-white/95 z-20 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)] opacity-100 blur-none pointer-events-auto">
+                                    {isExpanded ? (
+                                      <button
+                                        onClick={() => setExpandedDups(prev => ({ ...prev, [idx]: false }))}
+                                        className="px-2.5 py-1 bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-300 rounded text-xs font-semibold cursor-pointer transition-colors"
+                                      >
+                                        Thu gọn
+                                      </button>
+                                    ) : (
+                                      <div className="flex items-center justify-center gap-1.5">
+                                        <button
+                                          onClick={() => setExpandedDups(prev => ({ ...prev, [idx]: true }))}
+                                          className="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded text-xs font-semibold cursor-pointer transition-colors"
+                                        >
+                                          Đối chiếu
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            const newRemoved = result.removedDuplicates.filter((_, i) => i !== idx);
+                                            const newRows = [...(result.rows || []), dup.removedRow];
+                                            setResult({
+                                              ...result,
+                                              rows: newRows,
+                                              removedDuplicates: newRemoved,
+                                              totalDuplicate: Math.max(0, (result.totalDuplicate || 1) - 1),
+                                              totalOutput: (result.totalOutput || 0) + 1
+                                            });
+                                          }}
+                                          className="px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded text-xs font-semibold cursor-pointer transition-colors"
+                                          title="Khôi phục dòng này về danh sách kết quả chính"
+                                        >
+                                          Khôi phục
+                                        </button>
+                                      </div>
+                                    )}
+                                  </td>
+                                </tr>
+
+                                {/* Sub-row: Pair Comparison */}
+                                {isExpanded && (
+                                  <tr className="bg-amber-50/95 border-b-2 border-amber-200">
+                                    <td colSpan={2 + displayCols.length + 1} className="p-4 pl-8">
+                                      <div className="bg-white rounded-xl border border-amber-300 shadow-md overflow-hidden relative">
+                                        <div className="bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 px-4 py-2.5 border-b border-amber-200/60 flex items-center justify-between relative">
+                                          <div className="sticky left-4 z-10 flex items-center gap-2 bg-white/95 backdrop-blur-xs px-3 py-1 rounded-lg border border-amber-200 shadow-2xs">
+                                            <span className="font-bold text-gray-800 text-sm">
+                                              Bảng so sánh chi tiết giữa bản ghi giữ lại và bản ghi bị loại bỏ
+                                            </span>
+                                            <span className="text-xs text-gray-500 italic ml-2 border-l border-gray-200 pl-2">Khóa trùng lặp: <strong className="text-amber-800">{dup.matchedKey}</strong></span>
+                                          </div>
+                                          <div className="sticky right-4 z-10 flex items-center gap-2 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-gray-200 shadow-sm ml-auto">
+                                            <button
+                                              onClick={() => setExpandedDups(prev => ({ ...prev, [idx]: false }))}
+                                              className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md text-xs font-semibold cursor-pointer transition-colors"
+                                            >
+                                              Đóng
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                const newRemoved = result.removedDuplicates.filter((_, i) => i !== idx);
+                                                const newRows = [...(result.rows || []), dup.removedRow];
+                                                setResult({
+                                                  ...result,
+                                                  rows: newRows,
+                                                  removedDuplicates: newRemoved,
+                                                  totalDuplicate: Math.max(0, (result.totalDuplicate || 1) - 1),
+                                                  totalOutput: (result.totalOutput || 0) + 1
+                                                });
+                                              }}
+                                              className="px-3 py-1 bg-green-600 text-white hover:bg-green-700 rounded-md text-xs font-semibold cursor-pointer shadow-2xs transition-colors"
+                                            >
+                                              Khôi phục dòng này
+                                            </button>
+                                          </div>
+                                        </div>
+                                        <div className="overflow-x-auto table-scroll p-4 pt-3">
+                                          <table className="w-full text-left border-collapse">
+                                            <thead>
+                                              <tr className="bg-gray-100 text-gray-600 font-bold uppercase border-b border-gray-200">
+                                                <th className="py-2 px-3 w-44 sticky left-0 z-10 bg-gray-100 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.05)]">Trạng thái</th>
+                                                {result.headers?.map((h, hIdx) => (
+                                                  <th key={hIdx} className="py-2 px-3 border-r border-gray-200 min-w-[120px]">{h}</th>
+                                                ))}
+                                              </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                              {/* Row 1: Kept */}
+                                              <tr className="bg-green-50/60 text-green-950 font-medium">
+                                                <td className="py-2 px-3 font-bold text-green-700 border-r border-green-200 sticky left-0 z-10 bg-green-50 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.05)]">
+                                                  <span className="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold">ĐƯỢC GIỮ LẠI</span> <span className="font-normal text-xs ml-1">(Dòng #{dup.keptRowIndex})</span>
+                                                </td>
+                                                {result.headers?.map((h, hIdx) => {
+                                                  const val = dup.keptRow?.[h];
+                                                  return <td key={hIdx} className="py-2 px-3 border-r border-gray-200">{val ?? '-'}</td>;
+                                                })}
+                                              </tr>
+                                              {/* Row 2: Removed */}
+                                              <tr className="bg-red-50/50 text-red-950 font-medium">
+                                                <td className="py-2 px-3 font-bold text-red-700 border-r border-red-200 sticky left-0 z-10 bg-red-50 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.05)]">
+                                                  <span className="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-bold">BỊ LOẠI BỎ</span> <span className="font-normal text-xs ml-1">({dup.sourceFile} - Dòng {dup.sourceRowIndex})</span>
+                                                </td>
+                                                {result.headers?.map((h, hIdx) => {
+                                                  const valRemoved = dup.removedRow?.[h];
+                                                  const valKept = dup.keptRow?.[h];
+                                                  const isDiff = String(valRemoved ?? '') !== String(valKept ?? '');
+                                                  return (
+                                                    <td key={hIdx} className={`py-2 px-3 border-r border-gray-200 ${isDiff ? 'bg-amber-200/90 text-amber-950 font-bold underline decoration-amber-600' : ''}`}>
+                                                      {valRemoved ?? '-'} {isDiff && <span className="text-[10px] text-amber-800 ml-1 font-bold">[≠]</span>}
+                                                    </td>
+                                                  );
+                                                })}
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </React.Fragment>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

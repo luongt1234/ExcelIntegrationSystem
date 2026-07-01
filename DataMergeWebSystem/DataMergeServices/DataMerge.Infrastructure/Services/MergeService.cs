@@ -21,9 +21,16 @@ namespace DataMerge.Infrastructure.Services
         /// - Mode 1: Union + Dedup (loại trùng lặp theo key).
         /// - Mode 3: Chỉ dọn dẹp / chuẩn hóa 1 file (không gộp).
         /// </summary>
+        private class RowWithMetadata
+        {
+            public Dictionary<string, object?> Row { get; set; } = new();
+            public string SourceFile { get; set; } = string.Empty;
+            public int RowIndex { get; set; }
+        }
+
         public async Task<MergeResultDto> MergeFilesAsync(List<string> filePaths, MergeKeyConfig config)
         {
-            var allData = new List<Dictionary<string, object?>>();
+            var allData = new List<RowWithMetadata>();
             int totalInput = 0;
 
             // Đọc toàn bộ data từ các files
@@ -33,6 +40,12 @@ namespace DataMerge.Infrastructure.Services
                 if (config.SelectedSheetByFile != null && config.SelectedSheetByFile.TryGetValue(fp, out var sheet))
                 {
                     selectedSheet = sheet;
+                }
+
+                string sourceFile = Path.GetFileName(fp);
+                if (config.FileNamesByPath != null && config.FileNamesByPath.TryGetValue(fp, out var fn) && !string.IsNullOrWhiteSpace(fn))
+                {
+                    sourceFile = fn;
                 }
 
                 var fileData = await _excelService.ReadAllDataAsync(fp, selectedSheet);
@@ -61,7 +74,15 @@ namespace DataMerge.Infrastructure.Services
                 }
 
                 totalInput += fileData.Count;
-                allData.AddRange(fileData);
+                for (int i = 0; i < fileData.Count; i++)
+                {
+                    allData.Add(new RowWithMetadata
+                    {
+                        Row = fileData[i],
+                        SourceFile = sourceFile,
+                        RowIndex = i + 2
+                    });
+                }
             }
 
             // Thu thập tất cả các key columns duy nhất
@@ -71,15 +92,17 @@ namespace DataMerge.Infrastructure.Services
                 .ToList();
 
             List<Dictionary<string, object?>> dedupedData;
+            var removedDuplicates = new List<RemovedDuplicateDto>();
             int dupCount = 0;
 
             if (keyColumns.Any())
             {
                 // Deduplication & Merge: giữ lại dòng đầu tiên của mỗi key, đắp thêm dữ liệu từ các dòng trùng lặp
-                var dedupDict = new Dictionary<string, Dictionary<string, object?>>(StringComparer.OrdinalIgnoreCase);
+                var dedupDict = new Dictionary<string, RowWithMetadata>(StringComparer.OrdinalIgnoreCase);
 
-                foreach (var row in allData)
+                foreach (var rowMeta in allData)
                 {
+                    var row = rowMeta.Row;
                     var keyValue = BuildKey(row, keyColumns);
                     if (string.IsNullOrWhiteSpace(keyValue))
                     {
@@ -87,13 +110,29 @@ namespace DataMerge.Infrastructure.Services
                         keyValue = Guid.NewGuid().ToString(); 
                     }
 
-                    if (!dedupDict.TryGetValue(keyValue, out var existingRow))
+                    if (!dedupDict.TryGetValue(keyValue, out var existingMeta))
                     {
-                        dedupDict[keyValue] = new Dictionary<string, object?>(row);
+                        dedupDict[keyValue] = new RowWithMetadata
+                        {
+                            Row = new Dictionary<string, object?>(row),
+                            SourceFile = rowMeta.SourceFile,
+                            RowIndex = rowMeta.RowIndex
+                        };
                     }
                     else
                     {
                         dupCount++;
+                        var existingRow = existingMeta.Row;
+
+                        removedDuplicates.Add(new RemovedDuplicateDto
+                        {
+                            RemovedRow = new Dictionary<string, object?>(row),
+                            KeptRow = existingRow,
+                            SourceFile = rowMeta.SourceFile,
+                            SourceRowIndex = rowMeta.RowIndex,
+                            MatchedKey = keyValue
+                        });
+
                         // Merge các cột còn thiếu từ dòng mới vào dòng đã tồn tại
                         foreach (var kvp in row)
                         {
@@ -111,22 +150,29 @@ namespace DataMerge.Infrastructure.Services
                         }
                     }
                 }
-                dedupedData = dedupDict.Values.ToList();
+                dedupedData = dedupDict.Values.Select(v => v.Row).ToList();
+
+                for (int i = 0; i < removedDuplicates.Count; i++)
+                {
+                    var keptIdx = dedupedData.IndexOf(removedDuplicates[i].KeptRow);
+                    removedDuplicates[i].KeptRowIndex = keptIdx >= 0 ? keptIdx + 1 : 1;
+                }
             }
             else
             {
-                dedupedData = allData;
+                dedupedData = allData.Select(x => x.Row).ToList();
             }
 
             // Thu thập toàn bộ headers từ tất cả data rows
             var allHeaders = allData
-                .SelectMany(r => r.Keys)
+                .SelectMany(r => r.Row.Keys)
                 .Distinct()
                 .ToList();
 
             return new MergeResultDto
             {
                 Rows = dedupedData,
+                RemovedDuplicates = removedDuplicates,
                 Headers = allHeaders,
                 TotalInput = totalInput,
                 TotalOutput = dedupedData.Count,

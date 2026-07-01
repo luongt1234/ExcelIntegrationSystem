@@ -40,6 +40,19 @@ namespace DataMerge.Domain.Models
         
         /// <summary>Key: fileId, Value: tên sheet được chọn</summary>
         public Dictionary<string, string>? SelectedSheetByFile { get; set; }
+
+        /// <summary>Key: filePath, Value: tên file gốc dễ đọc cho người dùng</summary>
+        public Dictionary<string, string>? FileNamesByPath { get; set; }
+    }
+
+    public class RemovedDuplicateDto
+    {
+        public Dictionary<string, object?> RemovedRow { get; set; } = new();
+        public Dictionary<string, object?> KeptRow { get; set; } = new();
+        public string SourceFile { get; set; } = string.Empty;
+        public int SourceRowIndex { get; set; }
+        public string MatchedKey { get; set; } = string.Empty;
+        public int KeptRowIndex { get; set; }
     }
 
     /// <summary>
@@ -48,6 +61,7 @@ namespace DataMerge.Domain.Models
     public class MergeResultDto
     {
         public List<Dictionary<string, object?>> Rows { get; set; } = new();
+        public List<RemovedDuplicateDto> RemovedDuplicates { get; set; } = new();
         public List<string> Headers { get; set; } = new();
         public int TotalInput { get; set; }
         public int TotalOutput { get; set; }

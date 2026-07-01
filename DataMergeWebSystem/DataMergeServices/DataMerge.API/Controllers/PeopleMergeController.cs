@@ -51,12 +51,22 @@ namespace DataMerge.API.Controllers
                     )
                 : null;
 
+            var fileNamesByPath = request.FileNamesById != null
+                ? request.FileIds
+                    .Where(id => request.FileNamesById.ContainsKey(id))
+                    .ToDictionary(
+                        id => _uploadService.GetTempFilePath(id),
+                        id => request.FileNamesById[id]
+                    )
+                : null;
+
             var config = new MergeKeyConfig
             {
                 KeyColumnsByFile = request.KeyColumnsByFile ?? request.FileIds.ToDictionary(id => id, id => new List<string>()),
                 MergeMode = request.MergeMode,
                 ColumnMappingsByFile = mappingsByFilePath,
-                SelectedSheetByFile = request.SelectedSheetByFile
+                SelectedSheetByFile = request.SelectedSheetByFile,
+                FileNamesByPath = fileNamesByPath
             };
 
             var result = await _mergeService.MergeFilesAsync(filePaths, config);
@@ -80,6 +90,7 @@ namespace DataMerge.API.Controllers
         public int MergeMode { get; set; } = 1;
         public Dictionary<string, Dictionary<string, string>>? ColumnMappingsByFile { get; set; }
         public Dictionary<string, string>? SelectedSheetByFile { get; set; }
+        public Dictionary<string, string>? FileNamesById { get; set; }
     }
 
     public class ExportRequest
