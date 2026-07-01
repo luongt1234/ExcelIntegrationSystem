@@ -360,5 +360,104 @@ namespace DataMerge.Infrastructure.Services
                 return fallbackOriginal;
             return symbol;
         }
+
+        // ── Unpivot (Ngang → Dọc) ─────────────────────────────────────────
+        public async Task<PivotPreviewResult> UnpivotPreviewAsync(string filePath, UnpivotRequest request)
+        {
+            var allRows = await _excelService.ReadAllDataAsync(filePath, request.SheetName);
+            var (headers, resultRows, stats) = ExecuteUnpivotInternal(allRows, request);
+
+            return new PivotPreviewResult
+            {
+                Headers = headers,
+                PreviewRows = resultRows.Take(15).ToList(),
+                TotalRows = resultRows.Count,
+                ColumnStats = stats
+            };
+        }
+
+        public async Task<byte[]> UnpivotExportAsync(string filePath, UnpivotRequest request)
+        {
+            var allRows = await _excelService.ReadAllDataAsync(filePath, request.SheetName);
+            var (_, resultRows, _) = ExecuteUnpivotInternal(allRows, request);
+            return await _excelService.WriteToExcelAsync(resultRows, "UnpivotResult");
+        }
+
+        private (List<string> headers, List<Dictionary<string, object?>> rows, Dictionary<string, int> stats)
+            ExecuteUnpivotInternal(List<Dictionary<string, object?>> allRows, UnpivotRequest request)
+        {
+            if (allRows.Count == 0)
+                return (new List<string>(), new List<Dictionary<string, object?>>(), new Dictionary<string, int>());
+
+            var originalHeaders = allRows[0].Keys.ToList();
+
+            // Các cột sẽ bị unpivot (thu gọn thành dòng)
+            var unpivotSet = new HashSet<string>(request.UnpivotColumns, StringComparer.OrdinalIgnoreCase);
+
+            // Các cột giữ nguyên (identity)
+            var identityColumns = originalHeaders.Where(h => !unpivotSet.Contains(h)).ToList();
+
+            // Tên cột mới đảm bảo không trùng identity
+            var attrCol = EnsureUniqueName(request.AttributeColumnName, identityColumns);
+            string? valCol = null;
+            if (request.IncludeValueColumn && !string.IsNullOrWhiteSpace(request.ValueColumnName))
+            {
+                valCol = EnsureUniqueName(request.ValueColumnName, identityColumns.Concat(new[] { attrCol }).ToList());
+            }
+
+            // Build header list: identity columns + attr (+ value nếu bật)
+            var finalHeaders = new List<string>(identityColumns) { attrCol };
+            if (valCol != null) finalHeaders.Add(valCol);
+
+            var resultRows = new List<Dictionary<string, object?>>();
+            var stats = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            // Đếm số lần xuất hiện giá trị khác rỗng cho mỗi cột unpivot
+            foreach (var col in request.UnpivotColumns)
+                stats[col] = 0;
+
+            foreach (var row in allRows)
+            {
+                // Copy phần identity
+                var identityPart = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+                foreach (var col in identityColumns)
+                    identityPart[col] = row.TryGetValue(col, out var v) ? v : null;
+
+                foreach (var unpivotCol in request.UnpivotColumns)
+                {
+                    row.TryGetValue(unpivotCol, out var cellValue);
+                    var strVal = cellValue?.ToString()?.Trim();
+
+                    // Bỏ qua nếu rỗng và SkipEmptyValues = true
+                    if (request.SkipEmptyValues && string.IsNullOrEmpty(strVal))
+                        continue;
+
+                    var newRow = new Dictionary<string, object?>(identityPart, StringComparer.OrdinalIgnoreCase)
+                    {
+                        [attrCol] = unpivotCol
+                    };
+                    if (valCol != null)
+                    {
+                        newRow[valCol] = string.IsNullOrEmpty(strVal) ? null : (object?)strVal;
+                    }
+
+                    resultRows.Add(newRow);
+
+                    if (!string.IsNullOrEmpty(strVal))
+                        stats[unpivotCol] = stats.GetValueOrDefault(unpivotCol) + 1;
+                }
+            }
+
+            return (finalHeaders, resultRows, stats);
+        }
+
+        private static string EnsureUniqueName(string candidate, IEnumerable<string> existingNames)
+        {
+            var existing = new HashSet<string>(existingNames, StringComparer.OrdinalIgnoreCase);
+            if (!existing.Contains(candidate)) return candidate;
+            int i = 2;
+            while (existing.Contains($"{candidate} ({i})")) i++;
+            return $"{candidate} ({i})";
+        }
     }
 }

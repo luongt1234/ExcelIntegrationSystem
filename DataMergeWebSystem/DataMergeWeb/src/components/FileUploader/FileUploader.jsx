@@ -6,7 +6,7 @@ import { uploadFile } from '../../services/excelService';
  * Component Upload file Excel. Hỗ trợ kéo thả (drag & drop) và chọn file thông thường.
  * Sau khi upload thành công, trả về { fileId, fileName, headers, totalRows } qua onUploadSuccess.
  */
-export default function FileUploader({ onUploadSuccess, onRemove, label = "Chọn file Excel", initialFile = null }) {
+export default function FileUploader({ onUploadSuccess, onRemove, onSheetChange, label = "Chọn file Excel", initialFile = null }) {
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(initialFile);
@@ -92,8 +92,8 @@ export default function FileUploader({ onUploadSuccess, onRemove, label = "Chọ
           type="file"
           accept=".xlsx,.xls"
           onChange={handleInputChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-          disabled={loading}
+          className={`absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 ${uploadedFile ? 'hidden' : ''}`}
+          disabled={loading || !!uploadedFile}
         />
         {uploadedFile && (
           <button
@@ -116,9 +116,26 @@ export default function FileUploader({ onUploadSuccess, onRemove, label = "Chọ
             {loading ? (
               <span className="text-blue-600 font-medium">Đang upload...</span>
             ) : uploadedFile ? (
-              <div className="text-green-700">
+              <div className="text-green-700 flex flex-col items-center gap-1.5">
                 <p className="font-semibold">{uploadedFile.name}</p>
                 <p className="text-xs text-green-600">{uploadedFile.totalRows} dòng · {uploadedFile.headers?.length} cột</p>
+                {uploadedFile.sheetNames && uploadedFile.sheetNames.length > 0 && onSheetChange && (
+                  <div
+                    className="mt-2 flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-green-300 shadow-sm z-20 cursor-auto"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-xs font-semibold text-gray-600">Sheet:</span>
+                    <select
+                      value={uploadedFile.selectedSheet || ''}
+                      onChange={(e) => onSheetChange(e.target.value)}
+                      className="text-xs font-bold text-green-800 bg-transparent border-none focus:outline-none cursor-pointer pr-1"
+                    >
+                      {uploadedFile.sheetNames.map((s, idx) => (
+                        <option key={idx} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             ) : (
               <>

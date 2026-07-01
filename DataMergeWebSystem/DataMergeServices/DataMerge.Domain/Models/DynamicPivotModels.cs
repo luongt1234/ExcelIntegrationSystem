@@ -64,4 +64,21 @@ namespace DataMerge.Domain.Models
         public int TotalRows { get; set; }
         public Dictionary<string, int> ColumnStats { get; set; } = new();
     }
+
+    // ── Unpivot (Ngang → Dọc) ──────────────────────────────────────────────
+    public class UnpivotRequest
+    {
+        public string FileId { get; set; } = string.Empty;
+        public string? SheetName { get; set; }
+        /// <summary>Các cột sẽ bị thu gọn (bung ra thành dòng)</summary>
+        public List<string> UnpivotColumns { get; set; } = new();
+        /// <summary>Tên cột mới chứa tên của cột gốc</summary>
+        public string AttributeColumnName { get; set; } = "Danh mục";
+        /// <summary>Tên cột mới chứa giá trị</summary>
+        public string ValueColumnName { get; set; } = "Giá trị";
+        /// <summary>Có xuất cột chứa giá trị hay không (mặc định tắt cho các bảng checklist)</summary>
+        public bool IncludeValueColumn { get; set; } = false;
+        /// <summary>Bỏ qua các dòng kết quả có giá trị rỗng/null</summary>
+        public bool SkipEmptyValues { get; set; } = true;
+    }
 }

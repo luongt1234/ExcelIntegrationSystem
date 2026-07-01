@@ -60,6 +60,21 @@ export const AppProvider = ({ children }) => {
   const [pivotState, setPivotState] = useState(initialPivotState);
   const resetPivotState = () => setPivotState(initialPivotState);
 
+  // --- Unpivot (Ngang → Dọc) State ---
+  const initialUnpivotState = {
+    step: 0,
+    uploadedFile: null,
+    allHeaders: [],       // Tất cả cột của file
+    unpivotColumns: [],   // Các cột được chọn để unpivot
+    attributeColumnName: 'Danh mục',
+    valueColumnName: 'Giá trị',
+    includeValueColumn: false,
+    skipEmptyValues: true,
+    previewResult: null,
+  };
+  const [unpivotState, setUnpivotState] = useState(initialUnpivotState);
+  const resetUnpivotState = () => setUnpivotState(initialUnpivotState);
+
   const [headerCenterContent, setHeaderCenterContent] = useState(null);
 
   return (
@@ -69,6 +84,7 @@ export const AppProvider = ({ children }) => {
         infoState, setInfoState, resetInfoState,
         goodsState, setGoodsState, resetGoodsState,
         pivotState, setPivotState, resetPivotState,
+        unpivotState, setUnpivotState, resetUnpivotState,
         headerCenterContent, setHeaderCenterContent,
       }}
     >

@@ -58,6 +58,12 @@ export const previewPivot = (config) =>
 export const exportPivotResult = (config) =>
   api.post('/api/dynamicPivot/export', config, { responseType: 'blob' });
 
+export const previewUnpivot = (request) =>
+  api.post('/api/dynamicPivot/unpivot-preview', request);
+
+export const exportUnpivotResult = (request) =>
+  api.post('/api/dynamicPivot/unpivot-export', request, { responseType: 'blob' });
+
 // ── Utility: Trigger download từ blob response ─────────
 export const downloadBlob = (response, fileName) => {
   const url = window.URL.createObjectURL(new Blob([response.data]));

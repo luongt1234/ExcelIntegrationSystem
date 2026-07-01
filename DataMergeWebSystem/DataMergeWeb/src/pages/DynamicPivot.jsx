@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Split, AlertTriangle, Download, RefreshCw, HelpCircle, Maximize2, Minimize2, FileText, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import FileUploader from '../components/FileUploader/FileUploader';
-import { analyzePivot, previewPivot, exportPivotResult, downloadBlob, getFileData } from '../services/excelService';
+import { analyzePivot, previewPivot, exportPivotResult, downloadBlob, getFileData, getFileStructure } from '../services/excelService';
 import { useAppContext } from '../contexts/AppContext';
 
 // ── Helper: chuyển index cột sang chữ cái Excel (A, B, C...) ──────────
@@ -16,7 +16,7 @@ const getColumnLetter = (i) => {
 // PivotColumnPicker — bảng Excel trực quan để chọn cột cần xoay ngang
 // Học theo phong cách FileStructurePreview trong PeopleMerge
 // ────────────────────────────────────────────────────────────────────────
-function PivotColumnPicker({ uploadedFile, sourceColumns, loading, error, onToggleColumn, onBack, onAnalyze }) {
+function PivotColumnPicker({ uploadedFile, sourceColumns, loading, error, onToggleColumn, onBack, onAnalyze, onSheetChange }) {
   const [previewData, setPreviewData] = useState([]);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -72,6 +72,21 @@ function PivotColumnPicker({ uploadedFile, sourceColumns, loading, error, onTogg
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
+                {uploadedFile.sheetNames && uploadedFile.sheetNames.length > 0 && onSheetChange && (
+                  <div className="flex items-center gap-1.5 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                    <span className="text-xs font-semibold text-gray-600">Sheet:</span>
+                    <select
+                      value={uploadedFile.selectedSheet || ''}
+                      onChange={(e) => onSheetChange(e.target.value)}
+                      disabled={loading}
+                      className="text-xs font-bold text-blue-700 bg-transparent border-none focus:outline-none cursor-pointer pr-1"
+                    >
+                      {uploadedFile.sheetNames.map((s, idx) => (
+                        <option key={idx} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 {headers.length > 0 && (
                   <>
                     <button
@@ -312,6 +327,26 @@ export default function DynamicPivot() {
     setError('');
   };
 
+  const handleSheetChange = async (newSheetName) => {
+    if (!uploadedFile || uploadedFile.selectedSheet === newSheetName) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await getFileStructure(uploadedFile.fileId, newSheetName);
+      updateState({
+        uploadedFile: { ...res.data, fileId: res.data.filePath, fileName: uploadedFile.fileName || uploadedFile.name },
+        sourceColumns: [],
+        analysisResult: null,
+        columnConfigs: [],
+        previewResult: null
+      });
+    } catch (err) {
+      setError('Lỗi khi tải cấu trúc sheet: ' + (err.response?.data || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleSourceColumn = (col) => {
     const exists = sourceColumns.includes(col);
     const updated = exists ? sourceColumns.filter(c => c !== col) : [...sourceColumns, col];
@@ -446,6 +481,7 @@ export default function DynamicPivot() {
               label="File Excel đầu vào"
               onUploadSuccess={handleUploadSuccess}
               initialFile={uploadedFile}
+              onSheetChange={handleSheetChange}
               onRemove={() => updateState({ uploadedFile: null, sourceColumns: [], analysisResult: null, columnConfigs: [], previewResult: null })}
             />
 
@@ -474,6 +510,7 @@ export default function DynamicPivot() {
             onToggleColumn={toggleSourceColumn}
             onBack={() => setStep(0)}
             onAnalyze={handleAnalyze}
+            onSheetChange={handleSheetChange}
           />
         )}
 

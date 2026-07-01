@@ -51,5 +51,27 @@ namespace DataMerge.API.Controllers
             var bytes = await _pivotService.ExportAsync(filePath, config);
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "KetQua_ChuyenDoiDocNgang.xlsx");
         }
+
+        [HttpPost("unpivot-preview")]
+        public async Task<IActionResult> UnpivotPreview([FromBody] UnpivotRequest request)
+        {
+            var filePath = _uploadService.GetTempFilePath(request.FileId);
+            if (!System.IO.File.Exists(filePath))
+                return NotFound("File không tồn tại hoặc đã hết hạn.");
+
+            var result = await _pivotService.UnpivotPreviewAsync(filePath, request);
+            return Ok(result);
+        }
+
+        [HttpPost("unpivot-export")]
+        public async Task<IActionResult> UnpivotExport([FromBody] UnpivotRequest request)
+        {
+            var filePath = _uploadService.GetTempFilePath(request.FileId);
+            if (!System.IO.File.Exists(filePath))
+                return NotFound("File không tồn tại hoặc đã hết hạn.");
+
+            var bytes = await _pivotService.UnpivotExportAsync(filePath, request);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "KetQua_ChuyenDoiNgangDoc.xlsx");
+        }
     }
 }

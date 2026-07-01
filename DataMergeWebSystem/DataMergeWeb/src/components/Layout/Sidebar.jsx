@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Users, Layers, Package, LogOut, ChevronRight, Menu, Split } from 'lucide-react';
+import { Home, Users, Layers, Package, LogOut, ChevronRight, Menu, Split, Columns } from 'lucide-react';
 
 const menus = [
   { name: 'Trang chủ', path: '/home', icon: Home },
   { name: 'Gộp Hồ Sơ', path: '/people-merge', icon: Users },
   { name: 'Bổ sung thông tin', path: '/info-append', icon: Layers },
   { name: 'Gộp Hàng Hóa', path: '/goods-merge', icon: Package },
-  { name: 'Chuyển đổi Dọc - Ngang', path: '/dynamic-pivot', icon: Split },
+  { name: 'Chuyển đổi Dọc → Ngang', path: '/dynamic-pivot', icon: Split },
+  { name: 'Chuyển đổi Ngang → Dọc', path: '/unpivot', icon: Columns },
 ];
 
 export default function Sidebar() {
